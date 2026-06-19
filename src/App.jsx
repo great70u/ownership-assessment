@@ -1,16 +1,16 @@
 import { useState } from 'react'
 
 const QUESTIONS = [
-  { id: 1, text: "When a problem arises, do your team members proactively identify it and flag it — or do they wait for management to notice?" },
-  { id: 2, text: "When escalating issues, do your team members bring potential solutions — or just problems?" },
+  { id: 1, text: "When a problem arises, do your team members proactively identify it and flag it, or do they wait for management to notice?" },
+  { id: 2, text: "When escalating issues, do your team members bring potential solutions or just problems?" },
   { id: 3, text: "Do your team members make decisions within their scope without waiting for approval?" },
-  { id: 4, text: "When a project is assigned, do team members take ownership of the outcome — or just complete the tasks?" },
-  { id: 5, text: "Do team members keep stakeholders updated proactively — or do people have to chase them for information?" },
-  { id: 6, text: "After completing a project, do team members reflect on what worked and what didn't — or do they just move to the next thing?" },
-  { id: 7, text: "When something goes wrong, do team members take responsibility — or look for someone else to blame?" },
-  { id: 8, text: "Do team members ask 'how can I help solve this?' when problems arise — or say 'that's not my job'?" },
-  { id: 9, text: "Do team members challenge processes or suggest improvements — or just follow instructions?" },
-  { id: 10, text: "Do team members communicate the 'why' behind their work — or just execute without context?" },
+  { id: 4, text: "When a project is assigned, do team members take ownership of the outcome, or just complete the tasks?" },
+  { id: 5, text: "Do team members keep stakeholders updated proactively, or do people have to chase them for information?" },
+  { id: 6, text: "After completing a project, do team members reflect on what worked and what didn't, or do they just move to the next thing?" },
+  { id: 7, text: "When something goes wrong, do team members take responsibility, or look for someone else to blame?" },
+  { id: 8, text: "Do team members ask 'how can I help solve this?' when problems arise, or say 'that's not my job'?" },
+  { id: 9, text: "Do team members challenge processes or suggest improvements, or just follow instructions?" },
+  { id: 10, text: "Do team members communicate the 'why' behind their work, or just execute without context?" },
 ]
 
 const OPTIONS = [
@@ -26,25 +26,38 @@ const RESULTS = {
     range: '28–40', label: 'Ownership-Active', tag: 'STRONG FOUNDATION',
     tagBg: '#FDBE0F', tagText: '#000000',
     headline: 'Your team demonstrates strong ownership behaviors.',
-    summary: 'They proactively identify problems, make decisions within their scope, and take responsibility for outcomes — not just tasks. This is rare. Most organizations struggle to build this level of ownership consistency.',
-    points: ['Keep reinforcing the behaviors through feedback', 'Make sure new hires are onboarded into this culture', 'Watch for regression as the team grows'],
-    cta: "If you want to scale this ownership culture or extend it to other teams, the Own It Program can help systematize what you're already doing well.",
+    summary: 'They proactively identify problems, make decisions within their scope, and take responsibility for outcomes, not just tasks. This is rare. Most organizations struggle to build this level of ownership consistency.',
+    points: [
+      'Keep reinforcing the behaviors through feedback',
+      'Make sure new hires are onboarded into this culture',
+      'Watch for regression as the team grows',
+    ],
+    cta: 'If you want to scale this ownership culture or extend it to other teams, the Own It Program can help systematize what you\'re already doing well.',
   },
   partial: {
     range: '14–27', label: 'Ownership-Partial', tag: 'MOST COMMON PATTERN',
     tagBg: '#FFD243', tagText: '#000000',
-    headline: "Your team shows ownership — but it's inconsistent.",
-    summary: "Some people take initiative, others wait. Some decisions get made quickly, others stall. Your team has the capability — but the ownership behaviors aren't embedded yet.",
-    points: ["Ownership shows up under pressure, disappears when there isn't any", 'A few strong performers carry the load, others coast', 'Managers still spend significant time supervising'],
-    cta: "The fix: Install ownership as a behavioral standard, not a personality trait. The Own It Program is designed for exactly this — moving from partial to consistent ownership across your team.",
+    headline: 'Your team shows some ownership behaviors, but they\'re inconsistent.',
+    summary: 'Some people take initiative, others wait. Some decisions get made quickly; others stall. This is the most common pattern we see. Your team has the capability, but the ownership behaviors aren\'t embedded yet.',
+    points: [
+      'Ownership shows up when there\'s pressure, disappears when there isn\'t',
+      'A few strong performers carry the load, others coast',
+      'Managers still spend significant time supervising',
+    ],
+    cta: 'The fix: Install ownership as a behavioral standard, not a personality trait. The Own It Program is designed for exactly this, moving from partial to consistent ownership across your team.',
   },
   deficit: {
     range: '0–13', label: 'Ownership-Deficit', tag: 'NEEDS ATTENTION',
     tagBg: '#333333', tagText: '#FDBE0F',
     headline: 'Your team operates in waiting mode.',
-    summary: "They wait to be told what to do. They escalate decisions they should be making. They complete tasks but don't own outcomes. This isn't a people problem — it's a system problem.",
-    points: ['Managers become bottlenecks', 'Projects move slower than they should', 'Talented people get frustrated and leave', "You're doing the thinking for everyone"],
-    cta: "The good news: Ownership is trainable. It's a set of specific behaviors — and behaviors can be installed through the right structure. The Own It Program is built for teams in exactly this position. 6 weeks to shift from waiting to owning.",
+    summary: 'They wait to be told what to do. They escalate decisions they should be making. They complete tasks but don\'t own outcomes. This isn\'t a people problem; it\'s a system problem. Your team has learned to wait because that\'s what the environment rewards (or at least doesn\'t punish).',
+    points: [
+      'Managers become bottlenecks',
+      'Projects move slower than they should',
+      'Talented people get frustrated and leave',
+      'You\'re doing the thinking for everyone',
+    ],
+    cta: 'The good news: Ownership is trainable. It\'s a set of specific behaviors, and behaviors can be installed through the right structure. The Own It Program is built for teams in exactly this position. 6 weeks to shift from waiting to owning.',
   },
 }
 
@@ -56,8 +69,6 @@ function getResult(score) {
 
 const S = {
   page: { minHeight: '100vh', background: '#000', color: '#fff', fontFamily: "'Montserrat', Arial, sans-serif" },
-
-  // Header
   header: { borderBottom: '1px solid #1a1a1a', padding: '20px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, background: '#000', zIndex: 10 },
   logoWrap: { display: 'flex', alignItems: 'center', gap: '12px' },
   logoImg: { height: '36px', width: '36px', objectFit: 'contain' },
@@ -66,8 +77,6 @@ const S = {
   progressBar: { width: '140px', height: '2px', background: '#1a1a1a', borderRadius: '2px', overflow: 'hidden' },
   progressFill: (pct) => ({ height: '100%', width: `${pct}%`, background: '#FDBE0F', borderRadius: '2px', transition: 'width 0.4s ease' }),
   progressLabel: { fontSize: '12px', color: '#808080', fontWeight: 500 },
-
-  // Intro
   introWrap: { maxWidth: '760px', margin: '0 auto', padding: '80px 24px 80px' },
   eyebrow: { display: 'inline-block', fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#000', background: '#FDBE0F', padding: '6px 16px', marginBottom: '32px' },
   h1: { fontSize: 'clamp(34px, 5vw, 56px)', fontWeight: 900, lineHeight: 1.04, letterSpacing: '-0.03em', color: '#fff', marginBottom: '24px' },
@@ -77,8 +86,6 @@ const S = {
   metaRow: { display: 'flex', gap: '48px', marginTop: '72px', paddingTop: '48px', borderTop: '1px solid #1a1a1a' },
   metaNum: { fontWeight: 900, fontSize: '40px', color: '#FDBE0F', display: 'block', lineHeight: 1 },
   metaLabel: { fontSize: '11px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#808080', marginTop: '6px', display: 'block' },
-
-  // Questions
   qWrap: { maxWidth: '680px', margin: '0 auto', padding: '64px 24px 80px' },
   qNum: { fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#808080', marginBottom: '20px' },
   qText: { fontSize: 'clamp(20px, 3vw, 28px)', fontWeight: 700, lineHeight: 1.3, letterSpacing: '-0.02em', color: '#fff', marginBottom: '48px' },
@@ -103,8 +110,6 @@ const S = {
     padding: '16px 32px', border: 'none',
     cursor: dis ? 'not-allowed' : 'pointer', transition: 'all 0.15s ease',
   }),
-
-  // Result
   rWrap: { maxWidth: '720px', margin: '0 auto', padding: '64px 24px 100px' },
   scoreCenter: { textAlign: 'center', marginBottom: '64px' },
   scoreBox: {
@@ -149,7 +154,6 @@ export default function App() {
 
   return (
     <div style={S.page}>
-      {/* HEADER */}
       <header style={S.header}>
         <div style={S.logoWrap}>
           <img src="/logo.png" alt="Beingsphere" style={S.logoImg} />
@@ -167,16 +171,15 @@ export default function App() {
         )}
       </header>
 
-      {/* INTRO */}
       {phase === 'intro' && (
         <div style={S.introWrap}>
           <span style={S.eyebrow}>Ownership Readiness Assessment</span>
           <h1 style={S.h1}>
             Does your team own outcomes<br />
-            <span style={S.h1Yellow}>— or just complete tasks?</span>
+            <span style={S.h1Yellow}>or just complete tasks?</span>
           </h1>
           <p style={S.subText}>
-            10 questions. 3 minutes. A clear picture of where ownership breaks down in your team — and what to do about it.
+            10 questions. 3 minutes. A clear picture of where ownership breaks down in your team and what to do about it.
           </p>
           <button style={S.startBtn} onClick={() => setPhase('questions')}>
             Start Assessment →
@@ -192,7 +195,6 @@ export default function App() {
         </div>
       )}
 
-      {/* QUESTIONS */}
       {phase === 'questions' && (
         <div style={S.qWrap}>
           <div style={S.qNum}>Question {current + 1} of {totalQ}</div>
@@ -223,7 +225,6 @@ export default function App() {
         </div>
       )}
 
-      {/* RESULT */}
       {phase === 'result' && (
         <div style={S.rWrap}>
           <div style={S.scoreCenter}>
@@ -257,7 +258,12 @@ export default function App() {
           <div style={S.ctaCard}>
             <div style={S.cardEyebrow}>Next Step</div>
             <p style={S.ctaText}>{result.cta}</p>
-            <a href="https://beingsphere.com" style={S.ctaBtn} target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://www.beingsphereint.com/corporate/own-it"
+              style={S.ctaBtn}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Learn About the Own It Program →
             </a>
           </div>
