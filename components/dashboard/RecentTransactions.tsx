@@ -1,17 +1,23 @@
 'use client'
 import Link from 'next/link'
 import { useFilterStore } from '@/store/filterStore'
+import { useTransactionStore } from '@/store/transactionStore'
 import { getDemoTransactions } from '@/lib/demo-store'
 import { CATEGORY_COLORS, CATEGORY_LABELS, CATEGORY_EMOJIS } from '@/types'
 import { formatCurrency, formatRelativeDate } from '@/lib/utils'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ArrowRight } from 'lucide-react'
-import type { TransactionCategory } from '@/types'
+import type { Transaction, TransactionCategory } from '@/types'
 
 export function RecentTransactions() {
   const { selectedAccountId } = useFilterStore()
-  const transactions = getDemoTransactions(selectedAccountId).slice(0, 5)
+  const { userTransactions } = useTransactionStore()
+
+  const demoTxns = getDemoTransactions(selectedAccountId)
+  const allTxns: Transaction[] = [...userTransactions, ...demoTxns]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 5)
 
   return (
     <Card>
@@ -26,8 +32,9 @@ export function RecentTransactions() {
       </CardHeader>
       <CardContent className="pt-2 pb-2">
         <div className="space-y-0.5">
-          {transactions.map(tx => {
+          {allTxns.map(tx => {
             const isCredit = tx.type === 'CREDIT'
+            const isUserAdded = tx.id.startsWith('user-')
             return (
               <div
                 key={tx.id}
@@ -36,9 +43,7 @@ export function RecentTransactions() {
                 <div className="flex items-center gap-3">
                   <div
                     className="w-9 h-9 rounded-md flex items-center justify-center text-base shrink-0"
-                    style={{
-                      backgroundColor: `${CATEGORY_COLORS[tx.category as TransactionCategory]}20`,
-                    }}
+                    style={{ backgroundColor: `${CATEGORY_COLORS[tx.category as TransactionCategory]}20` }}
                   >
                     {CATEGORY_EMOJIS[tx.category as TransactionCategory]}
                   </div>
@@ -47,16 +52,15 @@ export function RecentTransactions() {
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-xs text-secondary">{formatRelativeDate(tx.date)}</span>
                       {tx.isAutoCategorized && (
-                        <Badge variant="default" className="text-[10px] px-1.5 py-0">
-                          AI
-                        </Badge>
+                        <Badge variant="default" className="text-[10px] px-1.5 py-0">AI</Badge>
+                      )}
+                      {isUserAdded && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-accent/40 text-accent">New</Badge>
                       )}
                     </div>
                   </div>
                 </div>
-                <span
-                  className={`text-sm font-semibold ${isCredit ? 'text-success' : 'text-primary'}`}
-                >
+                <span className={`text-sm font-semibold ${isCredit ? 'text-success' : 'text-primary'}`}>
                   {isCredit ? '+' : '-'}{formatCurrency(tx.amount)}
                 </span>
               </div>

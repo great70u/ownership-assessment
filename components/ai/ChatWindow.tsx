@@ -59,13 +59,13 @@ export function ChatWindow() {
       })
 
       if (!res.ok) {
-        const err = await res.json()
-        if (err.error?.includes('ANTHROPIC_API_KEY')) {
+        const err = await res.json().catch(() => ({ error: 'Request failed' }))
+        if (err.error?.includes('ANTHROPIC_API_KEY') || res.status === 400) {
           setApiKeyMissing(true)
           setMessages(prev =>
             prev.map(m =>
               m.id === assistantId
-                ? { ...m, content: '⚠️ AI assistant requires an ANTHROPIC_API_KEY to be configured in environment variables. The rest of the app works without it!' }
+                ? { ...m, content: '🔑 **API key not connected to Vercel yet.**\n\nTo fix this:\n1. Go to your Vercel Dashboard\n2. Open the **zinkro** project → **Settings** → **Environment Variables**\n3. Add `ANTHROPIC_API_KEY` with your key\n4. Click **Save** then go to **Deployments** → **Redeploy**\n\nThe rest of the app works perfectly without it!' }
                 : m
             )
           )
