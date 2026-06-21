@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
@@ -9,7 +9,13 @@ import {
   Bot,
   Settings,
   Zap,
+  LogOut,
 } from 'lucide-react'
+
+interface SessionUser {
+  name: string
+  email: string
+}
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -19,8 +25,23 @@ const NAV_ITEMS = [
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ]
 
-export function Sidebar() {
+export function Sidebar({ user }: { user: SessionUser | null }) {
   const pathname = usePathname()
+  const router = useRouter()
+
+  async function handleLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' })
+    router.push('/login')
+    router.refresh()
+  }
+
+  const displayName = user?.name || 'Demo User'
+  const initials = displayName
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-[236px] bg-surface border-r border-border flex flex-col z-30">
@@ -57,16 +78,23 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* User */}
+      {/* User + Logout */}
       <div className="p-4 border-t border-border">
         <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-8 h-8 rounded-full gradient-bg flex items-center justify-center text-white text-sm font-bold shrink-0">
-            AT
+          <div className="w-8 h-8 rounded-full gradient-bg flex items-center justify-center text-white text-xs font-bold shrink-0">
+            {initials}
           </div>
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-primary truncate">Tomi Bello</p>
-            <p className="text-xs text-secondary truncate">Demo Account</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-primary truncate">{displayName}</p>
+            <p className="text-xs text-secondary truncate">{user?.email || 'Demo Account'}</p>
           </div>
+          <button
+            onClick={handleLogout}
+            title="Sign out"
+            className="text-secondary hover:text-red-400 transition shrink-0"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </aside>
