@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zinkro — Budgets &amp; Goals (Web)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-canvas:#0F1115;
+    --bg-surface:#181B22;
+    --bg-surface-2:#20242E;
+    --border:#2A2E37;
+    --text-primary:#F5F6FA;
+    --text-secondary:#8A8F98;
+    --accent:#3D7FFF;
+    --accent-2:#00D4D4;
+    --success:#34D399;
+    --error:#FF6B6B;
+    --warning:#FFB84D;
+    --gradient: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:28px;
+
+    --cat-feeding:#FFB84D;
+    --cat-transport:#00D4D4;
+    --cat-utilities:#3D7FFF;
+    --cat-gifts:#FF6B6B;
+    --cat-rent:#9B7EDE;
+    --cat-other:#8A8F98;
+    --cat-income:#34D399;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  body{
+    font-family:'Inter', sans-serif;
+    background:#E7E9EE;
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:32px 16px; color:var(--text-primary);
+  }
+  h1,h2,h3,.font-display{ font-family:'Sora', sans-serif; }
+
+  .stage{ display:flex; flex-direction:column; align-items:center; gap:18px; width:100%; }
+  .stage-header{ text-align:center; }
+  .stage-header .eyebrow{ font-size:11px; font-weight:700; letter-spacing:3px; color:#9098A6; text-transform:uppercase; }
+  .stage-header h1{ font-size:20px; font-weight:700; color:#0F1115; margin-top:4px; }
+  .stage-hint{ font-size:12px; color:#6B7078; margin-top:2px; }
+
+  /* ---------- Browser frame ---------- */
+  .browser{
+    width:100%; max-width:1440px; height:900px;
+    background:var(--bg-canvas);
+    border-radius:16px; overflow:hidden;
+    box-shadow:0 30px 60px -20px rgba(15,17,21,0.45), 0 0 0 1px rgba(255,255,255,0.04);
+    display:flex; flex-direction:column;
+    position:relative;
+  }
+  .browser-bar{ display:flex; align-items:center; gap:14px; padding:12px 16px; background:#05060A; flex-shrink:0; }
+  .traffic{ display:flex; gap:7px; }
+  .traffic span{ width:11px; height:11px; border-radius:50%; }
+  .traffic span:nth-child(1){ background:#FF6B6B; }
+  .traffic span:nth-child(2){ background:#FFB84D; }
+  .traffic span:nth-child(3){ background:#34D399; }
+  .url-bar{ flex:1; max-width:480px; background:var(--bg-surface); border:1px solid var(--border); border-radius:8px; padding:6px 14px; font-size:12px; color:var(--text-secondary); display:flex; align-items:center; gap:8px; }
+  .url-bar svg{ width:12px; height:12px; color:var(--success); }
+
+  /* ---------- App shell ---------- */
+  .shell{ flex:1; display:flex; overflow:hidden; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{ width:236px; background:var(--bg-surface); border-right:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; padding:20px 14px; }
+  .side-logo{ display:flex; align-items:center; gap:10px; padding:0 8px 24px; }
+  .side-logo-mark{ width:34px; height:34px; border-radius:10px; background:var(--gradient); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .side-logo-mark svg{ width:18px; height:18px; color:#06141F; }
+  .side-logo-text{ font-family:'Sora',sans-serif; font-weight:800; font-size:17px; letter-spacing:0.5px; }
+
+  .nav-section-label{ font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-secondary); padding:14px 12px 8px; }
+  .nav-item{ display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; font-size:13.5px; font-weight:600; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; margin-bottom:2px; }
+  .nav-item svg{ width:18px; height:18px; flex-shrink:0; }
+  .nav-item:hover{ background:var(--bg-surface-2); color:var(--text-primary); }
+  .nav-item.active{ background:rgba(61,127,255,0.12); color:var(--text-primary); }
+  .nav-item.active svg{ color:var(--accent); }
+  .nav-spacer{ flex:1; }
+  .side-footer{ border-top:1px solid var(--border); padding-top:14px; display:flex; align-items:center; gap:10px; }
+  .side-avatar{ width:36px; height:36px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-weight:700; font-size:13px; color:#06141F; flex-shrink:0; }
+  .side-footer-name{ font-size:13px; font-weight:700; }
+  .side-footer-plan{ font-size:11px; color:var(--text-secondary); }
+  .side-footer svg{ width:14px; height:14px; color:var(--text-secondary); margin-left:auto; }
+
+  /* ---------- Main ---------- */
+  .main{ flex:1; overflow-y:auto; padding:24px 28px; min-width:0; }
+  .topbar{ display:flex; align-items:center; gap:16px; margin-bottom:24px; }
+  .topbar-title h1{ font-size:22px; font-weight:700; }
+  .topbar-title .sub{ font-size:12.5px; color:var(--text-secondary); margin-top:2px; }
+  .topbar-spacer{ flex:1; }
+  .search-input{ width:240px; background:var(--bg-surface); border:1.5px solid var(--border); border-radius:var(--r-md); padding:10px 14px; padding-left:38px; color:var(--text-primary); font-family:'Inter',sans-serif; font-size:13px; outline:none; position:relative; }
+  .search-wrap{ position:relative; }
+  .search-wrap svg{ position:absolute; left:13px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--text-secondary); }
+  .icon-btn{ width:38px; height:38px; border-radius:50%; background:var(--bg-surface); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; cursor:pointer; }
+  .icon-btn svg{ width:16px; height:16px; color:var(--text-secondary); }
+  .icon-btn .dot{ position:absolute; top:8px; right:8px; width:7px; height:7px; border-radius:50%; background:var(--error); border:2px solid var(--bg-canvas); }
+  .btn-add{ display:flex; align-items:center; gap:8px; background:var(--gradient); color:#06141F; font-weight:700; font-size:13px; padding:10px 18px; border-radius:var(--r-md); border:none; cursor:pointer; white-space:nowrap; }
+  .btn-add svg{ width:16px; height:16px; }
+  .topbar-avatar{ width:38px; height:38px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-weight:700; font-size:13px; color:#06141F; flex-shrink:0; }
+
+  /* ---------- Cards & grid ---------- */
+  .card{ background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:18px; }
+  .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
+  .stat-label{ font-size:12px; color:var(--text-secondary); margin-bottom:8px; }
+  .stat-value{ font-size:24px; font-weight:700; font-variant-numeric:tabular-nums; margin-bottom:8px; }
+  .trend-pill{ display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; }
+  .trend-up{ background:rgba(52,211,153,0.12); color:var(--success); }
+
+  .ring-wrap{ position:relative; width:48px; height:48px; flex-shrink:0; }
+  .ring-wrap svg{ transform:rotate(-90deg); }
+  .ring-center{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .ring-score{ font-size:14px; font-weight:800; font-family:'Sora',sans-serif; }
+
+  .chart-row{ display:grid; grid-template-columns:1.6fr 1fr; gap:16px; margin-bottom:20px; }
+  .card-title{ font-size:14px; font-weight:700; font-family:'Sora',sans-serif; margin-bottom:4px; }
+  .card-sub{ font-size:12px; color:var(--text-secondary); margin-bottom:14px; }
+
+  /* Net worth chart */
+  .nw-chart-wrap{ position:relative; }
+  .nw-axis{ display:flex; justify-content:space-between; font-size:11px; color:var(--text-secondary); margin-top:8px; }
+
+  /* Donut */
+  .donut-card{ display:flex; flex-direction:column; align-items:center; }
+  .donut{
+    width:140px; height:140px; border-radius:50%;
+    background: conic-gradient(#FFB84D 0deg 103.7deg, #00D4D4 103.7deg 137.3deg, #3D7FFF 137.3deg 197.1deg, #9B7EDE 197.1deg 360deg);
+    display:flex; align-items:center; justify-content:center; margin:6px 0 16px;
+  }
+  .donut-hole{ width:92px; height:92px; border-radius:50%; background:var(--bg-surface); display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .donut-hole .pct{ font-size:22px; font-weight:800; font-family:'Sora',sans-serif; }
+  .donut-hole .lbl{ font-size:10px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px; }
+  .legend{ width:100%; display:flex; flex-direction:column; gap:8px; }
+  .legend-row{ display:flex; justify-content:space-between; align-items:center; font-size:12.5px; }
+  .legend-left{ display:flex; align-items:center; gap:8px; color:var(--text-secondary); }
+  .legend-dot{ width:9px; height:9px; border-radius:3px; flex-shrink:0; }
+  .legend-val{ font-weight:700; font-variant-numeric:tabular-nums; }
+
+  /* Budget summary */
+  .budget-section{ margin-bottom:20px; }
+  .budget-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+  .budget-card .budget-top{ display:flex; justify-content:space-between; align-items:center; font-size:13px; margin-bottom:8px; }
+  .budget-cat{ display:flex; align-items:center; gap:8px; font-weight:700; }
+  .cat-dot{ width:10px; height:10px; border-radius:4px; flex-shrink:0; }
+  .budget-track{ height:7px; background:var(--bg-surface-2); border-radius:4px; overflow:hidden; margin-bottom:6px; }
+  .budget-fill{ height:100%; border-radius:4px; }
+  .budget-foot{ font-size:11px; color:var(--text-secondary); }
+  .over-tag{ font-size:10px; font-weight:700; color:var(--error); text-transform:uppercase; letter-spacing:.5px; background:rgba(255,107,107,0.12); padding:2px 7px; border-radius:6px; }
+  .alert-banner{ display:flex; gap:12px; align-items:flex-start; background:rgba(255,107,107,0.08); border:1px solid rgba(255,107,107,0.3); border-left:3px solid var(--error); border-radius:var(--r-md); padding:14px; margin-bottom:14px; font-size:13px; line-height:1.5; }
+  .alert-banner svg{ width:18px; height:18px; color:var(--error); flex-shrink:0; }
+  .alert-banner strong{ color:var(--error); }
+
+  /* Transactions table */
+  .table-wrap{ overflow-x:auto; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  thead th{ text-align:left; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-secondary); padding:0 12px 10px; border-bottom:1px solid var(--border); }
+  tbody td{ padding:14px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:nth-child(even){ background:rgba(255,255,255,0.015); }
+  tbody tr:hover{ background:rgba(61,127,255,0.04); }
+  .tx-merchant{ display:flex; align-items:center; gap:10px; font-weight:600; }
+  .tx-icon{ width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .tx-icon svg{ width:15px; height:15px; }
+  .cat-tag{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--text-secondary); }
+  .amount-cell{ font-weight:700; font-variant-numeric:tabular-nums; text-align:right; }
+  .amount-cell.income{ color:var(--success); }
+  th:last-child, td.amount-cell{ text-align:right; }
+
+  /* ---------- Right panel ---------- */
+  .right-panel{ width:312px; border-left:1px solid var(--border); padding:24px 20px; flex-shrink:0; overflow-y:auto; }
+  .panel-section{ margin-bottom:24px; }
+  .panel-title{ font-size:13px; font-weight:700; font-family:'Sora',sans-serif; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; }
+  .panel-link{ font-size:11.5px; font-weight:600; color:var(--accent-2); cursor:pointer; }
+
+  .ai-card{ display:flex; gap:10px; margin-bottom:10px; }
+  .ai-avatar{ width:30px; height:30px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .ai-avatar svg{ width:15px; height:15px; color:#06141F; }
+  .ai-text{ font-size:12.5px; line-height:1.6; }
+  .chip-row{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .chip{ font-size:11px; font-weight:600; padding:5px 10px; border-radius:999px; cursor:pointer; }
+  .chip-primary{ background:rgba(61,127,255,0.12); color:var(--accent); }
+  .chip-ghost{ background:var(--bg-surface-2); color:var(--text-secondary); }
+
+  .goal-row{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .goal-info{ flex:1; }
+  .goal-name{ font-size:12.5px; font-weight:700; }
+  .goal-sub{ font-size:11px; color:var(--text-secondary); margin-top:2px; }
+
+  .bill-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+  .bill-row:last-child{ border-bottom:none; }
+  .bill-name{ font-size:12.5px; font-weight:600; }
+  .bill-due{ font-size:10.5px; color:var(--text-secondary); margin-top:2px; }
+  .bill-due.soon{ color:var(--warning); }
+  .bill-amount{ font-size:12.5px; font-weight:700; font-variant-numeric:tabular-nums; }
+
+  /* ---------- Modal ---------- */
+  .overlay{ position:absolute; inset:0; background:rgba(0,0,0,0.55); opacity:0; pointer-events:none; transition:opacity .25s ease; z-index:60; display:flex; align-items:center; justify-content:center; }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .modal{ width:480px; max-height:85%; overflow-y:auto; background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--r-xl); padding:24px; transform:scale(.96); opacity:0; transition:all .2s ease; }
+  .overlay.show .modal{ transform:scale(1); opacity:1; }
+  .modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+  .modal-head h2{ font-size:18px; }
+  .modal-close{ width:32px; height:32px; border-radius:50%; background:var(--bg-surface-2); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .modal-close svg{ width:16px; height:16px; color:var(--text-secondary); }
+  .field-label{ font-size:13px; color:var(--text-secondary); margin-bottom:6px; display:block; font-weight:500; }
+  .field{ width:100%; background:var(--bg-surface-2); border:1.5px solid var(--border); border-radius:var(--r-md); padding:12px 14px; color:var(--text-primary); font-family:'Inter',sans-serif; font-size:14px; margin-bottom:14px; outline:none; }
+  .field-row{ display:flex; gap:12px; }
+  .field-row .field{ flex:1; }
+  .cat-picker{ display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; margin-bottom:14px; }
+  .cat-pick{ flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:6px; width:64px; padding:10px 6px; border-radius:14px; border:1.5px solid var(--border); cursor:pointer; transition:all .15s ease; }
+  .cat-pick.active{ border-color:var(--accent); background:rgba(61,127,255,0.08); }
+  .cat-pick-icon{ width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; }
+  .cat-pick-icon svg{ width:14px; height:14px; }
+  .cat-pick-label{ font-size:10px; font-weight:600; color:var(--text-secondary); text-align:center; }
+  .cat-pick.active .cat-pick-label{ color:var(--text-primary); }
+  .btn{ width:100%; border:none; border-radius:var(--r-md); font-family:'Inter',sans-serif; font-weight:600; font-size:15px; padding:13px; cursor:pointer; text-align:center; }
+  .btn-primary{ background:var(--gradient); color:#06141F; }
+
+  /* ---------- Filter bar ---------- */
+  .filter-bar{ display:flex; align-items:center; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+  .seg-control{ display:flex; background:var(--bg-surface); border-radius:var(--r-md); padding:4px; border:1px solid var(--border); }
+  .seg{ padding:8px 16px; border-radius:10px; font-size:12.5px; font-weight:600; color:var(--text-secondary); cursor:pointer; }
+  .seg.active{ background:var(--gradient); color:#06141F; }
+  .filter-chip{
+    display:flex; align-items:center; gap:6px; padding:8px 14px; border-radius:999px; font-size:12.5px; font-weight:600;
+    background:var(--bg-surface); border:1.5px solid var(--border); color:var(--text-secondary); cursor:pointer; transition:all .15s ease;
+  }
+  .filter-chip .dot{ width:8px; height:8px; border-radius:50%; }
+  .filter-chip.active{ background:rgba(61,127,255,0.12); border-color:var(--accent); color:var(--text-primary); }
+  .date-pill{ margin-left:auto; display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:600; color:var(--text-secondary); background:var(--bg-surface); border:1px solid var(--border); border-radius:999px; padding:8px 14px; cursor:pointer; }
+  .date-pill svg{ width:13px; height:13px; }
+
+  /* ---------- Table group rows ---------- */
+  .group-row td{ background:var(--bg-surface-2) !important; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-secondary); padding:10px 12px; border-bottom:1px solid var(--border); }
+  .group-row .group-total{ float:right; font-weight:700; letter-spacing:normal; text-transform:none; font-size:12px; color:var(--text-primary); }
+  .group-row .group-total.income{ color:var(--success); }
+  tbody tr.tx-clickable{ cursor:pointer; }
+  .recur-badge{ width:13px; height:13px; color:var(--text-secondary); display:inline-flex; vertical-align:middle; margin-left:6px; }
+  .recur-badge svg{ width:100%; height:100%; }
+
+  /* ---------- Toggle ---------- */
+  .toggle{ width:44px; height:26px; border-radius:13px; background:var(--bg-surface-2); border:1px solid var(--border); position:relative; cursor:pointer; transition:background .2s ease; flex-shrink:0; }
+  .toggle::after{ content:''; position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:var(--text-secondary); transition:all .2s ease; }
+  .toggle.on{ background:var(--gradient); border-color:transparent; }
+  .toggle.on::after{ left:22px; background:#fff; }
+
+  /* ---------- Detail panel ---------- */
+  .detail-head{ display:flex; flex-direction:column; align-items:center; text-align:center; padding:6px 0 16px; }
+  .detail-icon{ width:56px; height:56px; border-radius:16px; display:flex; align-items:center; justify-content:center; margin-bottom:12px; }
+  .detail-icon svg{ width:24px; height:24px; }
+  .detail-amount{ font-size:24px; font-weight:700; font-variant-numeric:tabular-nums; margin-bottom:4px; }
+  .detail-merchant{ font-size:12.5px; color:var(--text-secondary); }
+  .detail-row{ display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border); font-size:12.5px; }
+  .detail-row:last-child{ border-bottom:none; }
+  .detail-row-label{ color:var(--text-secondary); }
+  .ai-badge{ display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px; background:var(--gradient); color:#06141F; }
+  .ai-badge svg{ width:11px; height:11px; }
+  .cat-picker.small .cat-pick{ width:56px; }
+  .note-field{ width:100%; background:var(--bg-surface-2); border:1.5px solid var(--border); border-radius:var(--r-md); padding:10px 12px; color:var(--text-primary); font-family:'Inter',sans-serif; font-size:12.5px; outline:none; resize:none; margin-bottom:14px; }
+  .back-link{ display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--accent-2); cursor:pointer; margin-bottom:14px; }
+  .back-link svg{ width:14px; height:14px; }
+  .summary-stat{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); font-size:12.5px; }
+  .summary-stat:last-child{ border-bottom:none; }
+  .summary-stat .val{ font-weight:700; font-variant-numeric:tabular-nums; }
+  .summary-stat .val.income{ color:var(--success); }
+
+  /* ---------- Budgets/Goals/Savings panel additions ---------- */
+  .two-col{ display:flex; gap:16px; }
+  .goal-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .goal-card-v{ display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .goal-card-v .ring-wrap{ margin-bottom:14px; }
+  .goal-card-v .goal-name{ font-size:15px; font-weight:700; font-family:'Sora',sans-serif; margin-bottom:4px; }
+  .goal-card-v .goal-sub{ font-size:12px; color:var(--text-secondary); margin-bottom:10px; }
+  .goal-card-v .goal-amounts{ font-size:13px; margin-bottom:12px; }
+  .goal-card-v .goal-amounts strong{ font-size:17px; }
+  .goal-milestones{ display:flex; gap:5px; width:100%; }
+  .milestone{ flex:1; height:5px; border-radius:3px; background:var(--bg-surface-2); }
+  .milestone.done{ background:var(--gradient); }
+  .rule-row{ display:flex; justify-content:space-between; align-items:flex-start; padding:16px 0; border-bottom:1px solid var(--border); gap:16px; }
+  .rule-row:last-child{ border-bottom:none; }
+  .rule-title{ font-size:13.5px; font-weight:700; margin-bottom:4px; }
+  .rule-desc{ font-size:12.5px; color:var(--text-secondary); line-height:1.6; max-width:520px; }
+  .suggestion-box{ display:flex; gap:10px; align-items:flex-start; background:var(--bg-surface-2); border:1px solid var(--border); border-radius:var(--r-md); padding:12px; font-size:12.5px; line-height:1.6; color:var(--text-secondary); margin-bottom:16px; }
+  .suggestion-box svg{ width:16px; height:16px; flex-shrink:0; margin-top:1px; color:var(--accent-2); }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="stage-header">
+    <div class="eyebrow">ZINKRO WEB — BUDGETS &amp; GOALS</div>
+    <h1>Desktop Budgets &amp; Goals</h1>
+    <div class="stage-hint">Switch between Budgets / Goals / Savings &middot; the "+" button opens the matching create modal &middot; right panel shows live insights</div>
+  </div>
+
+  <div class="browser" id="browser">
+    <div class="browser-bar">
+      <div class="traffic"><span></span><span></span><span></span></div>
+      <div class="url-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        app.zinkro.com/dashboard
+      </div>
+    </div>
+
+    <div class="shell">
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="side-logo">
+          <div class="side-logo-mark">
+            <svg viewBox="0 0 180 180" width="18" height="18">
+              <g transform="translate(8,30)">
+                <path d="M30 0 H8 a14 14 0 0 0 -14 14 v48 a14 14 0 0 0 14 14 H30" fill="none" stroke="#06141F" stroke-width="11" stroke-linecap="round"/>
+                <path d="M74 0 H96 a14 14 0 0 1 14 14 v48 a14 14 0 0 1 -14 14 H74" fill="none" stroke="#06141F" stroke-width="11" stroke-linecap="round"/>
+                <polyline points="22,52 40,52 50,28 64,68 78,38 92,38" fill="none" stroke="#06141F" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+              </g>
+            </svg>
+          </div>
+          <div class="side-logo-text">Zinkro</div>
+        </div>
+
+        <div class="nav-section-label">Menu</div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 2l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+          Dashboard
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          Transactions
+        </div>
+        <div class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Budgets
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
+          Goals
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Savings
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3"/><path d="M12 2a5 5 0 0 1 5 5v3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/></svg>
+          AI Assistant
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+          Reports
+        </div>
+
+        <div class="nav-spacer"></div>
+
+        <div class="nav-item" style="margin-bottom:8px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </div>
+
+        <div class="side-footer">
+          <div class="side-avatar">AT</div>
+          <div>
+            <div class="side-footer-name">Tomi Bello</div>
+            <div class="side-footer-plan">Free Plan</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+      </div>
+
+      <!-- Main -->
+      <div class="main">
+
+        <div class="topbar">
+          <div class="topbar-title">
+            <h1 id="pageTitle">Budgets</h1>
+            <div class="sub">June 2026</div>
+          </div>
+          <div class="topbar-spacer"></div>
+          <div class="date-pill" style="margin-left:0;">
+            June 2026
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <button class="btn-add" onclick="openModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            <span id="createLabel">Create Budget</span>
+          </button>
+          <div class="topbar-avatar">AT</div>
+        </div>
+
+        <div class="seg-control" style="max-width:360px; margin-bottom:24px;">
+          <div class="seg active" onclick="setTab(this,0)">Budgets</div>
+          <div class="seg" onclick="setTab(this,1)">Goals</div>
+          <div class="seg" onclick="setTab(this,2)">Savings</div>
+        </div>
+
+        <!-- ================= BUDGETS PANEL ================= -->
+        <div class="panel" id="panel-0">
+
+          <div class="two-col" style="margin-bottom:20px;">
+            <div class="card donut-card" style="flex:0 0 360px;">
+              <div style="width:100%;">
+                <div class="card-title">Spending Breakdown</div>
+                <div class="card-sub">This month &#8226; &#8358;132,600 total</div>
+              </div>
+              <div class="donut"><div class="donut-hole"><div class="pct">93%</div><div class="lbl">of budget</div></div></div>
+              <div class="legend">
+                <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:var(--cat-rent);"></span>Rent</span><span class="legend-val">&#8358;60,000</span></div>
+                <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:var(--cat-feeding);"></span>Feeding</span><span class="legend-val">&#8358;38,200</span></div>
+                <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:var(--cat-utilities);"></span>Utilities</span><span class="legend-val">&#8358;22,000</span></div>
+                <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:var(--cat-transport);"></span>Transport</span><span class="legend-val">&#8358;12,400</span></div>
+              </div>
+            </div>
+
+            <div class="card" style="flex:1;">
+              <div class="card-title">Monthly Forecast</div>
+              <div class="card-sub">Actual spend vs. budget pace &#8226; Day 12 of 30</div>
+              <svg width="100%" height="160" viewBox="0 0 600 160" preserveAspectRatio="none">
+                <line x1="0" y1="160" x2="600" y2="56" stroke="#2A2E37" stroke-width="2" stroke-dasharray="4 4"/>
+                <polyline points="0,160 227,64" fill="none" stroke="#3D7FFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="227,64 600,16" fill="none" stroke="#3D7FFF" stroke-width="2.5" stroke-dasharray="5 5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="227" cy="64" r="4" fill="#3D7FFF"/>
+                <circle cx="600" cy="16" r="4" fill="#FF6B6B"/>
+              </svg>
+              <div class="nw-axis"><span>Day 1</span><span>Day 12 (Today)</span><span>Day 30</span></div>
+              <div style="display:flex; gap:18px; margin-top:14px; flex-wrap:wrap; font-size:12px; color:var(--text-secondary);">
+                <span><span style="display:inline-block; width:14px; height:2px; background:var(--accent); vertical-align:middle; margin-right:6px;"></span>Actual spend</span>
+                <span><span style="display:inline-block; width:14px; height:2px; background:var(--accent); vertical-align:middle; margin-right:6px; opacity:.5;"></span>Projected</span>
+                <span><span style="display:inline-block; width:14px; height:2px; background:var(--border); vertical-align:middle; margin-right:6px;"></span>Budget pace (&#8358;143,000)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="alert-banner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+            <div><strong>Utilities is 22% over budget</strong> this month, mainly from a higher electricity bill. At this pace, you'll spend &#8358;198,000 in total by 30 June &#8212; &#8358;8,000 over your overall budget.</div>
+          </div>
+
+          <div class="card-title" style="margin-bottom:14px;">Categories</div>
+          <div class="budget-grid">
+            <div class="card budget-card">
+              <div class="budget-top"><span class="budget-cat"><span class="cat-dot" style="background:var(--cat-feeding);"></span>Feeding</span><span>&#8358;38,200 / &#8358;45,000</span></div>
+              <div class="budget-track"><div class="budget-fill" style="width:85%; background:var(--cat-feeding);"></div></div>
+              <div class="budget-foot">85% used &#8226; 18 days left</div>
+            </div>
+            <div class="card budget-card">
+              <div class="budget-top"><span class="budget-cat"><span class="cat-dot" style="background:var(--cat-transport);"></span>Transport</span><span>&#8358;12,400 / &#8358;20,000</span></div>
+              <div class="budget-track"><div class="budget-fill" style="width:62%; background:var(--cat-transport);"></div></div>
+              <div class="budget-foot">62% used &#8226; 18 days left</div>
+            </div>
+            <div class="card budget-card">
+              <div class="budget-top"><span class="budget-cat"><span class="cat-dot" style="background:var(--cat-utilities);"></span>Utilities <span class="over-tag" style="margin-left:6px;">Over</span></span><span style="color:var(--error);">&#8358;22,000 / &#8358;18,000</span></div>
+              <div class="budget-track"><div class="budget-fill" style="width:100%; background:var(--error);"></div></div>
+              <div class="budget-foot" style="color:var(--error);">122% used &#8226; &#8358;4,000 over</div>
+            </div>
+            <div class="card budget-card">
+              <div class="budget-top"><span class="budget-cat"><span class="cat-dot" style="background:var(--cat-rent);"></span>Rent</span><span>&#8358;60,000 / &#8358;60,000</span></div>
+              <div class="budget-track"><div class="budget-fill" style="width:100%; background:var(--cat-rent);"></div></div>
+              <div class="budget-foot">100% used &#8226; fixed cost</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= GOALS PANEL ================= -->
+        <div class="panel" id="panel-1" style="display:none;">
+
+          <div class="card ai-card" style="margin-bottom:20px; padding:18px;">
+            <div class="ai-avatar" style="width:40px; height:40px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3"/><path d="M12 2a5 5 0 0 1 5 5v3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/></svg>
+            </div>
+            <div>
+              <div class="ai-text" style="font-size:13.5px;">Your Transport spending dropped 18% this month. Redirecting that <strong>&#8358;3,600</strong> to your Emergency Fund could get you there <strong>2 weeks sooner</strong>.</div>
+              <div class="chip-row"><span class="chip chip-primary">Redirect funds</span><span class="chip chip-ghost">Maybe later</span></div>
+            </div>
+          </div>
+
+          <div class="card-title" style="margin-bottom:14px;">Your Goals</div>
+          <div class="goal-grid">
+            <div class="card goal-card-v">
+              <div class="ring-wrap lg">
+                <svg width="80" height="80" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="34" fill="none" stroke="#2A2E37" stroke-width="6"/>
+                  <circle cx="40" cy="40" r="34" fill="none" stroke="url(#gA1)" stroke-width="6" stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="79"/>
+                  <defs><linearGradient id="gA1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3D7FFF"/><stop offset="100%" stop-color="#00D4D4"/></linearGradient></defs>
+                </svg>
+                <div class="ring-center"><div class="ring-score" style="font-size:17px;">63%</div></div>
+              </div>
+              <div class="goal-name">Lagos Trip</div>
+              <div class="goal-sub">Target: 14 March &#8226; 2 months left</div>
+              <div class="goal-amounts"><strong>&#8358;126,000</strong> <span style="color:var(--text-secondary);">of &#8358;200,000</span></div>
+              <div class="goal-milestones">
+                <div class="milestone done"></div><div class="milestone done"></div><div class="milestone done"></div><div class="milestone"></div>
+              </div>
+            </div>
+
+            <div class="card goal-card-v">
+              <div class="ring-wrap lg">
+                <svg width="80" height="80" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="34" fill="none" stroke="#2A2E37" stroke-width="6"/>
+                  <circle cx="40" cy="40" r="34" fill="none" stroke="url(#gA2)" stroke-width="6" stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="128.2"/>
+                  <defs><linearGradient id="gA2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3D7FFF"/><stop offset="100%" stop-color="#00D4D4"/></linearGradient></defs>
+                </svg>
+                <div class="ring-center"><div class="ring-score" style="font-size:17px;">40%</div></div>
+              </div>
+              <div class="goal-name">Emergency Fund</div>
+              <div class="goal-sub">Target: 3 months of expenses &#8226; Ongoing</div>
+              <div class="goal-amounts"><strong>&#8358;240,000</strong> <span style="color:var(--text-secondary);">of &#8358;600,000</span></div>
+              <div class="goal-milestones">
+                <div class="milestone done"></div><div class="milestone"></div><div class="milestone"></div><div class="milestone"></div>
+              </div>
+            </div>
+
+            <div class="card goal-card-v">
+              <div class="ring-wrap lg">
+                <svg width="80" height="80" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="34" fill="none" stroke="#2A2E37" stroke-width="6"/>
+                  <circle cx="40" cy="40" r="34" fill="none" stroke="url(#gA3)" stroke-width="6" stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="185.8"/>
+                  <defs><linearGradient id="gA3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3D7FFF"/><stop offset="100%" stop-color="#00D4D4"/></linearGradient></defs>
+                </svg>
+                <div class="ring-center"><div class="ring-score" style="font-size:17px;">13%</div></div>
+              </div>
+              <div class="goal-name">New Laptop</div>
+              <div class="goal-sub">Target: December 2026 &#8226; 6 months left</div>
+              <div class="goal-amounts"><strong>&#8358;45,000</strong> <span style="color:var(--text-secondary);">of &#8358;350,000</span></div>
+              <div class="goal-milestones">
+                <div class="milestone done"></div><div class="milestone"></div><div class="milestone"></div><div class="milestone"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= SAVINGS PANEL ================= -->
+        <div class="panel" id="panel-2" style="display:none;">
+
+          <div class="two-col" style="margin-bottom:20px;">
+            <div class="card" style="flex:0 0 260px;">
+              <div class="stat-label">SAVED THIS MONTH</div>
+              <div class="stat-value">&#8358;65,000</div>
+              <span class="trend-pill trend-up">&#9650; 8% vs last month</span>
+            </div>
+            <div class="card" style="flex:1;">
+              <div class="budget-top"><span style="font-weight:700;">Emergency Fund &#8212; Target: 3 months of expenses</span><span class="budget-amounts">&#8358;240,000 / &#8358;600,000</span></div>
+              <div class="budget-track" style="height:10px; margin-top:10px;"><div class="budget-fill" style="width:40%; background:var(--gradient);"></div></div>
+              <div class="budget-foot" style="margin-top:6px;">40% funded &#8226; ~7 months at current pace</div>
+            </div>
+          </div>
+
+          <div class="card-title" style="margin-bottom:14px;">Savings Rules</div>
+          <div class="card">
+            <div class="rule-row">
+              <div>
+                <div class="rule-title">Round-Up Savings</div>
+                <div class="rule-desc">Rounds every transaction up to the nearest &#8358;100 and saves the difference. &#8358;4,280 saved this month.</div>
+              </div>
+              <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="rule-row">
+              <div>
+                <div class="rule-title">Auto-Save &#8212; Weekly</div>
+                <div class="rule-desc">&#8358;20,000 every Friday from GTBank &#8226;&#8226;&#8226;&#8226;4521 into Emergency Fund.</div>
+              </div>
+              <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="rule-row">
+              <div>
+                <div class="rule-title">Spare Change Sweep</div>
+                <div class="rule-desc">Move any balance over &#8358;100,000 in your main account into savings at month end.</div>
+              </div>
+              <div class="toggle" onclick="this.classList.toggle('on')"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right panel -->
+      <div class="right-panel">
+
+        <div class="panel-section">
+          <div class="panel-title">AI Insights</div>
+          <div class="ai-card">
+            <div class="ai-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3"/><path d="M12 2a5 5 0 0 1 5 5v3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/></svg></div>
+            <div>
+              <div class="ai-text">You spent 18% less on Transport this month. Move the &#8358;3,600 difference into your <strong>Lagos Trip</strong> goal?</div>
+              <div class="chip-row"><span class="chip chip-primary">Move it</span><span class="chip chip-ghost">Not now</span></div>
+            </div>
+          </div>
+          <div class="ai-card">
+            <div class="ai-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg></div>
+            <div>
+              <div class="ai-text">Your <strong>Utilities</strong> budget is already 22% over this month, mainly from a higher electricity bill.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-title">This Month at a Glance</div>
+          <div class="summary-stat"><span class="detail-row-label">Total Income</span><span class="val income">+&#8358;450,000</span></div>
+          <div class="summary-stat"><span class="detail-row-label">Total Expenses</span><span class="val">&#8722;&#8358;164,900</span></div>
+          <div class="summary-stat"><span class="detail-row-label">Net</span><span class="val income">+&#8358;285,100</span></div>
+          <div class="summary-stat"><span class="detail-row-label">Savings Rate</span><span class="val">14.4%</span></div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-title">Net Worth</div>
+          <div class="card" style="padding:14px;">
+            <div class="stat-value" style="font-size:18px; margin-bottom:6px;">&#8358;1,240,000</div>
+            <svg width="100%" height="70" viewBox="0 0 280 70" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="nwFillR" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#00D4D4" stop-opacity="0.25"/>
+                  <stop offset="100%" stop-color="#00D4D4" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path d="M0,56 L46,52 L93,48 L140,51 L186,30 L233,24 L280,9 L280,70 L0,70 Z" fill="url(#nwFillR)"/>
+              <polyline points="0,56 46,52 93,48 140,51 186,30 233,24 280,9" fill="none" stroke="#00D4D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="nw-axis" style="font-size:10px;"><span>Jan</span><span>Jun</span></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Create Budget / New Goal / New Rule Modal -->
+    <div class="overlay" id="overlay" onclick="if(event.target===this) closeModal()">
+      <div class="modal">
+        <div class="modal-head">
+          <h2 id="modalTitle">Create Budget</h2>
+          <div class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+        </div>
+
+        <!-- Create Budget content -->
+        <div id="modalBudget">
+          <label class="field-label">Category</label>
+          <div class="cat-picker">
+            <div class="cat-pick"><div class="cat-pick-icon" style="background:rgba(255,184,77,0.12); color:var(--cat-feeding);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/></svg></div><div class="cat-pick-label">Feeding</div></div>
+            <div class="cat-pick active"><div class="cat-pick-icon" style="background:rgba(0,212,212,0.12); color:var(--cat-transport);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M5 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM19 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5 13l1.5-5h11L19 13"/></svg></div><div class="cat-pick-label">Transport</div></div>
+            <div class="cat-pick"><div class="cat-pick-icon" style="background:rgba(61,127,255,0.12); color:var(--cat-utilities);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg></div><div class="cat-pick-label">Utilities</div></div>
+            <div class="cat-pick"><div class="cat-pick-icon" style="background:rgba(255,107,107,0.12); color:var(--cat-gifts);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/></svg></div><div class="cat-pick-label">Gifts</div></div>
+            <div class="cat-pick"><div class="cat-pick-icon" style="background:rgba(138,143,152,0.15); color:var(--cat-other);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg></div><div class="cat-pick-label">Other</div></div>
+          </div>
+
+          <div class="suggestion-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3"/><path d="M12 2a5 5 0 0 1 5 5v3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/></svg>
+            <span>Based on your last 3 months, you've spent an average of <strong style="color:var(--text-primary);">&#8358;18,500</strong> on Transport. We've suggested a budget below.</span>
+          </div>
+
+          <div class="field-row">
+            <div style="flex:1;">
+              <label class="field-label">Monthly Budget Amount</label>
+              <input class="field" value="&#8358;20,000">
+            </div>
+            <div style="flex:1;">
+              <label class="field-label">Period</label>
+              <div class="seg-control" style="margin-bottom:0;">
+                <div class="seg active">Monthly</div>
+                <div class="seg">Weekly</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- New Goal content -->
+        <div id="modalGoal" style="display:none;">
+          <label class="field-label">Goal Name</label>
+          <input class="field" placeholder="e.g. Lagos Trip, New Laptop">
+
+          <div class="field-row">
+            <div style="flex:1;">
+              <label class="field-label">Target Amount</label>
+              <input class="field" placeholder="&#8358;0.00">
+            </div>
+            <div style="flex:1;">
+              <label class="field-label">Target Date</label>
+              <input class="field" value="14 March 2027">
+            </div>
+          </div>
+
+          <div class="suggestion-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3"/><path d="M12 2a5 5 0 0 1 5 5v3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/></svg>
+            <span>To reach this goal by your target date, you'll need to save about <strong style="color:var(--text-primary);">&#8358;37,000/month</strong>. Want Zinkro to set this up automatically?</span>
+          </div>
+
+          <div class="toggle-row" style="display:flex; justify-content:space-between; align-items:center; padding:4px 0 6px;">
+            <div>
+              <div style="font-size:13.5px; font-weight:600;">Enable Auto-Save</div>
+              <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">&#8358;37,000 every month toward this goal</div>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+
+        <!-- New Rule content -->
+        <div id="modalRule" style="display:none;">
+          <label class="field-label">Rule Type</label>
+          <div class="seg-control">
+            <div class="seg active">Auto-Save</div>
+            <div class="seg">Round-Up</div>
+            <div class="seg">Sweep</div>
+          </div>
+
+          <div class="field-row">
+            <div style="flex:1;">
+              <label class="field-label">Amount</label>
+              <input class="field" value="&#8358;10,000">
+            </div>
+            <div style="flex:1;">
+              <label class="field-label">Frequency</label>
+              <div class="seg-control" style="margin-bottom:0;">
+                <div class="seg">Daily</div>
+                <div class="seg active">Weekly</div>
+                <div class="seg">Monthly</div>
+              </div>
+            </div>
+          </div>
+
+          <label class="field-label">Destination</label>
+          <div class="cat-picker">
+            <div class="cat-pick active"><div class="cat-pick-icon" style="background:rgba(61,127,255,0.12); color:var(--accent);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/></svg></div><div class="cat-pick-label">Emergency Fund</div></div>
+            <div class="cat-pick"><div class="cat-pick-icon" style="background:rgba(0,212,212,0.12); color:var(--accent-2);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/></svg></div><div class="cat-pick-label">Lagos Trip</div></div>
+            <div class="cat-pick"><div class="cat-pick-icon" style="background:rgba(155,126,222,0.12); color:var(--cat-rent);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/></svg></div><div class="cat-pick-label">New Laptop</div></div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" style="margin-top:6px;" onclick="closeModal()" id="modalSubmit">Create Budget</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const titles = ['Budgets','Goals','Savings'];
+  const createLabels = ['Create Budget','New Goal','New Rule'];
+  const modalTitles = ['Create Budget','New Goal','New Savings Rule'];
+  const modalIds = ['modalBudget','modalGoal','modalRule'];
+  const submitLabels = ['Create Budget','Create Goal','Create Rule'];
+  let activeTab = 0;
+
+  function setTab(el, idx){
+    el.parentElement.querySelectorAll('.seg').forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+    activeTab = idx;
+    document.getElementById('pageTitle').textContent = titles[idx];
+    document.getElementById('createLabel').textContent = createLabels[idx];
+    for(let i=0;i<3;i++){
+      document.getElementById('panel-'+i).style.display = (i===idx) ? 'block' : 'none';
+    }
+  }
+
+  function openModal(){
+    document.getElementById('modalTitle').textContent = modalTitles[activeTab];
+    document.getElementById('modalSubmit').textContent = submitLabels[activeTab];
+    modalIds.forEach((id,i) => document.getElementById(id).style.display = (i===activeTab) ? 'block' : 'none');
+    document.getElementById('overlay').classList.add('show');
+  }
+  function closeModal(){ document.getElementById('overlay').classList.remove('show'); }
+
+  // category pickers within the modal
+  document.querySelectorAll('#overlay .cat-picker').forEach(picker => {
+    picker.querySelectorAll('.cat-pick').forEach(item => {
+      item.addEventListener('click', () => {
+        picker.querySelectorAll('.cat-pick').forEach(p => p.classList.remove('active'));
+        item.classList.add('active');
+      });
+    });
+  });
+
+  // segmented controls (top-level sub-tabs use setTab via onclick; these are the generic ones inside the modal)
+  document.querySelectorAll('#overlay .seg-control').forEach(group => {
+    group.querySelectorAll('.seg').forEach(seg => {
+      seg.addEventListener('click', () => {
+        group.querySelectorAll('.seg').forEach(s => s.classList.remove('active'));
+        seg.classList.add('active');
+      });
+    });
+  });
+</script>
+</body>
+</html>

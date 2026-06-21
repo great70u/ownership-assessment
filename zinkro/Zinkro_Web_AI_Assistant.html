@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zinkro — AI Assistant (Web)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-canvas:#0F1115;
+    --bg-surface:#181B22;
+    --bg-surface-2:#20242E;
+    --border:#2A2E37;
+    --text-primary:#F5F6FA;
+    --text-secondary:#8A8F98;
+    --accent:#3D7FFF;
+    --accent-2:#00D4D4;
+    --success:#34D399;
+    --error:#FF6B6B;
+    --warning:#FFB84D;
+    --gradient: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:28px;
+
+    --cat-feeding:#FFB84D;
+    --cat-transport:#00D4D4;
+    --cat-utilities:#3D7FFF;
+    --cat-gifts:#FF6B6B;
+    --cat-rent:#9B7EDE;
+    --cat-other:#8A8F98;
+    --cat-income:#34D399;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  body{
+    font-family:'Inter', sans-serif;
+    background:#E7E9EE;
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:32px 16px; color:var(--text-primary);
+  }
+  h1,h2,h3,.font-display{ font-family:'Sora', sans-serif; }
+
+  .stage{ display:flex; flex-direction:column; align-items:center; gap:18px; width:100%; }
+  .stage-header{ text-align:center; }
+  .stage-header .eyebrow{ font-size:11px; font-weight:700; letter-spacing:3px; color:#9098A6; text-transform:uppercase; }
+  .stage-header h1{ font-size:20px; font-weight:700; color:#0F1115; margin-top:4px; }
+  .stage-hint{ font-size:12px; color:#6B7078; margin-top:2px; }
+
+  /* ---------- Browser frame ---------- */
+  .browser{
+    width:100%; max-width:1440px; height:900px;
+    background:var(--bg-canvas);
+    border-radius:16px; overflow:hidden;
+    box-shadow:0 30px 60px -20px rgba(15,17,21,0.45), 0 0 0 1px rgba(255,255,255,0.04);
+    display:flex; flex-direction:column;
+    position:relative;
+  }
+  .browser-bar{ display:flex; align-items:center; gap:14px; padding:12px 16px; background:#05060A; flex-shrink:0; }
+  .traffic{ display:flex; gap:7px; }
+  .traffic span{ width:11px; height:11px; border-radius:50%; }
+  .traffic span:nth-child(1){ background:#FF6B6B; }
+  .traffic span:nth-child(2){ background:#FFB84D; }
+  .traffic span:nth-child(3){ background:#34D399; }
+  .url-bar{ flex:1; max-width:480px; background:var(--bg-surface); border:1px solid var(--border); border-radius:8px; padding:6px 14px; font-size:12px; color:var(--text-secondary); display:flex; align-items:center; gap:8px; }
+  .url-bar svg{ width:12px; height:12px; color:var(--success); }
+
+  /* ---------- App shell ---------- */
+  .shell{ flex:1; display:flex; overflow:hidden; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{ width:236px; background:var(--bg-surface); border-right:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; padding:20px 14px; }
+  .side-logo{ display:flex; align-items:center; gap:10px; padding:0 8px 24px; }
+  .side-logo-mark{ width:34px; height:34px; border-radius:10px; background:var(--gradient); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .side-logo-mark svg{ width:18px; height:18px; color:#06141F; }
+  .side-logo-text{ font-family:'Sora',sans-serif; font-weight:800; font-size:17px; letter-spacing:0.5px; }
+
+  .nav-section-label{ font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-secondary); padding:14px 12px 8px; }
+  .nav-item{ display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; font-size:13.5px; font-weight:600; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; margin-bottom:2px; }
+  .nav-item svg{ width:18px; height:18px; flex-shrink:0; }
+  .nav-item:hover{ background:var(--bg-surface-2); color:var(--text-primary); }
+  .nav-item.active{ background:rgba(61,127,255,0.12); color:var(--text-primary); }
+  .nav-item.active svg{ color:var(--accent); }
+  .nav-spacer{ flex:1; }
+  .side-footer{ border-top:1px solid var(--border); padding-top:14px; display:flex; align-items:center; gap:10px; }
+  .side-avatar{ width:36px; height:36px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-weight:700; font-size:13px; color:#06141F; flex-shrink:0; }
+  .side-footer-name{ font-size:13px; font-weight:700; }
+  .side-footer-plan{ font-size:11px; color:var(--text-secondary); }
+  .side-footer svg{ width:14px; height:14px; color:var(--text-secondary); margin-left:auto; }
+
+  /* ---------- Main ---------- */
+  .main{ flex:1; overflow-y:auto; padding:24px 28px; min-width:0; }
+  .topbar{ display:flex; align-items:center; gap:16px; margin-bottom:24px; }
+  .topbar-title h1{ font-size:22px; font-weight:700; }
+  .topbar-title .sub{ font-size:12.5px; color:var(--text-secondary); margin-top:2px; }
+  .topbar-spacer{ flex:1; }
+  .search-input{ width:240px; background:var(--bg-surface); border:1.5px solid var(--border); border-radius:var(--r-md); padding:10px 14px; padding-left:38px; color:var(--text-primary); font-family:'Inter',sans-serif; font-size:13px; outline:none; position:relative; }
+  .search-wrap{ position:relative; }
+  .search-wrap svg{ position:absolute; left:13px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--text-secondary); }
+  .icon-btn{ width:38px; height:38px; border-radius:50%; background:var(--bg-surface); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; cursor:pointer; }
+  .icon-btn svg{ width:16px; height:16px; color:var(--text-secondary); }
+  .icon-btn .dot{ position:absolute; top:8px; right:8px; width:7px; height:7px; border-radius:50%; background:var(--error); border:2px solid var(--bg-canvas); }
+  .btn-add{ display:flex; align-items:center; gap:8px; background:var(--gradient); color:#06141F; font-weight:700; font-size:13px; padding:10px 18px; border-radius:var(--r-md); border:none; cursor:pointer; white-space:nowrap; }
+  .btn-add svg{ width:16px; height:16px; }
+  .topbar-avatar{ width:38px; height:38px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-weight:700; font-size:13px; color:#06141F; flex-shrink:0; }
+
+  /* ---------- Cards & grid ---------- */
+  .card{ background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:18px; }
+  .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
+  .stat-label{ font-size:12px; color:var(--text-secondary); margin-bottom:8px; }
+  .stat-value{ font-size:24px; font-weight:700; font-variant-numeric:tabular-nums; margin-bottom:8px; }
+  .trend-pill{ display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; }
+  .trend-up{ background:rgba(52,211,153,0.12); color:var(--success); }
+
+  .ring-wrap{ position:relative; width:48px; height:48px; flex-shrink:0; }
+  .ring-wrap svg{ transform:rotate(-90deg); }
+  .ring-center{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .ring-score{ font-size:14px; font-weight:800; font-family:'Sora',sans-serif; }
+
+  .chart-row{ display:grid; grid-template-columns:1.6fr 1fr; gap:16px; margin-bottom:20px; }
+  .card-title{ font-size:14px; font-weight:700; font-family:'Sora',sans-serif; margin-bottom:4px; }
+  .card-sub{ font-size:12px; color:var(--text-secondary); margin-bottom:14px; }
+
+  /* Net worth chart */
+  .nw-chart-wrap{ position:relative; }
+  .nw-axis{ display:flex; justify-content:space-between; font-size:11px; color:var(--text-secondary); margin-top:8px; }
+
+  /* Donut */
+  .donut-card{ display:flex; flex-direction:column; align-items:center; }
+  .donut{
+    width:140px; height:140px; border-radius:50%;
+    background: conic-gradient(#FFB84D 0deg 103.7deg, #00D4D4 103.7deg 137.3deg, #3D7FFF 137.3deg 197.1deg, #9B7EDE 197.1deg 360deg);
+    display:flex; align-items:center; justify-content:center; margin:6px 0 16px;
+  }
+  .donut-hole{ width:92px; height:92px; border-radius:50%; background:var(--bg-surface); display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .donut-hole .pct{ font-size:22px; font-weight:800; font-family:'Sora',sans-serif; }
+  .donut-hole .lbl{ font-size:10px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px; }
+  .legend{ width:100%; display:flex; flex-direction:column; gap:8px; }
+  .legend-row{ display:flex; justify-content:space-between; align-items:center; font-size:12.5px; }
+  .legend-left{ display:flex; align-items:center; gap:8px; color:var(--text-secondary); }
+  .legend-dot{ width:9px; height:9px; border-radius:3px; flex-shrink:0; }
+  .legend-val{ font-weight:700; font-variant-numeric:tabular-nums; }
+
+  /* Budget summary */
+  .budget-section{ margin-bottom:20px; }
+  .budget-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+  .budget-card .budget-top{ display:flex; justify-content:space-between; align-items:center; font-size:13px; margin-bottom:8px; }
+  .budget-cat{ display:flex; align-items:center; gap:8px; font-weight:700; }
+  .cat-dot{ width:10px; height:10px; border-radius:4px; flex-shrink:0; }
+  .budget-track{ height:7px; background:var(--bg-surface-2); border-radius:4px; overflow:hidden; margin-bottom:6px; }
+  .budget-fill{ height:100%; border-radius:4px; }
+  .budget-foot{ font-size:11px; color:var(--text-secondary); }
+  .over-tag{ font-size:10px; font-weight:700; color:var(--error); text-transform:uppercase; letter-spacing:.5px; background:rgba(255,107,107,0.12); padding:2px 7px; border-radius:6px; }
+  .alert-banner{ display:flex; gap:12px; align-items:flex-start; background:rgba(255,107,107,0.08); border:1px solid rgba(255,107,107,0.3); border-left:3px solid var(--error); border-radius:var(--r-md); padding:14px; margin-bottom:14px; font-size:13px; line-height:1.5; }
+  .alert-banner svg{ width:18px; height:18px; color:var(--error); flex-shrink:0; }
+  .alert-banner strong{ color:var(--error); }
+
+  /* Transactions table */
+  .table-wrap{ overflow-x:auto; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  thead th{ text-align:left; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-secondary); padding:0 12px 10px; border-bottom:1px solid var(--border); }
+  tbody td{ padding:14px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:nth-child(even){ background:rgba(255,255,255,0.015); }
+  tbody tr:hover{ background:rgba(61,127,255,0.04); }
+  .tx-merchant{ display:flex; align-items:center; gap:10px; font-weight:600; }
+  .tx-icon{ width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .tx-icon svg{ width:15px; height:15px; }
+  .cat-tag{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--text-secondary); }
+  .amount-cell{ font-weight:700; font-variant-numeric:tabular-nums; text-align:right; }
+  .amount-cell.income{ color:var(--success); }
+  th:last-child, td.amount-cell{ text-align:right; }
+
+  /* ---------- Right panel ---------- */
+  .right-panel{ width:312px; border-left:1px solid var(--border); padding:24px 20px; flex-shrink:0; overflow-y:auto; }
+  .panel-section{ margin-bottom:24px; }
+  .panel-title{ font-size:13px; font-weight:700; font-family:'Sora',sans-serif; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; }
+  .panel-link{ font-size:11.5px; font-weight:600; color:var(--accent-2); cursor:pointer; }
+
+  .ai-card{ display:flex; gap:10px; margin-bottom:10px; }
+  .ai-avatar{ width:30px; height:30px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .ai-avatar svg{ width:15px; height:15px; color:#06141F; }
+  .ai-text{ font-size:12.5px; line-height:1.6; }
+  .chip-row{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .chip{ font-size:11px; font-weight:600; padding:5px 10px; border-radius:999px; cursor:pointer; }
+  .chip-primary{ background:rgba(61,127,255,0.12); color:var(--accent); }
+  .chip-ghost{ background:var(--bg-surface-2); color:var(--text-secondary); }
+
+  .goal-row{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .goal-info{ flex:1; }
+  .goal-name{ font-size:12.5px; font-weight:700; }
+  .goal-sub{ font-size:11px; color:var(--text-secondary); margin-top:2px; }
+
+  .bill-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+  .bill-row:last-child{ border-bottom:none; }
+  .bill-name{ font-size:12.5px; font-weight:600; }
+  .bill-due{ font-size:10.5px; color:var(--text-secondary); margin-top:2px; }
+  .bill-due.soon{ color:var(--warning); }
+  .bill-amount{ font-size:12.5px; font-weight:700; font-variant-numeric:tabular-nums; }
+
+  /* ---------- Modal ---------- */
+  .overlay{ position:absolute; inset:0; background:rgba(0,0,0,0.55); opacity:0; pointer-events:none; transition:opacity .25s ease; z-index:60; display:flex; align-items:center; justify-content:center; }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .modal{ width:480px; max-height:85%; overflow-y:auto; background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--r-xl); padding:24px; transform:scale(.96); opacity:0; transition:all .2s ease; }
+  .overlay.show .modal{ transform:scale(1); opacity:1; }
+  .modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+  .modal-head h2{ font-size:18px; }
+  .modal-close{ width:32px; height:32px; border-radius:50%; background:var(--bg-surface-2); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .modal-close svg{ width:16px; height:16px; color:var(--text-secondary); }
+  .field-label{ font-size:13px; color:var(--text-secondary); margin-bottom:6px; display:block; font-weight:500; }
+  .field{ width:100%; background:var(--bg-surface-2); border:1.5px solid var(--border); border-radius:var(--r-md); padding:12px 14px; color:var(--text-primary); font-family:'Inter',sans-serif; font-size:14px; margin-bottom:14px; outline:none; }
+  .field-row{ display:flex; gap:12px; }
+  .field-row .field{ flex:1; }
+  .cat-picker{ display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; margin-bottom:14px; }
+  .cat-pick{ flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:6px; width:64px; padding:10px 6px; border-radius:14px; border:1.5px solid var(--border); cursor:pointer; transition:all .15s ease; }
+  .cat-pick.active{ border-color:var(--accent); background:rgba(61,127,255,0.08); }
+  .cat-pick-icon{ width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; }
+  .cat-pick-icon svg{ width:14px; height:14px; }
+  .cat-pick-label{ font-size:10px; font-weight:600; color:var(--text-secondary); text-align:center; }
+  .cat-pick.active .cat-pick-label{ color:var(--text-primary); }
+  .btn{ width:100%; border:none; border-radius:var(--r-md); font-family:'Inter',sans-serif; font-weight:600; font-size:15px; padding:13px; cursor:pointer; text-align:center; }
+  .btn-primary{ background:var(--gradient); color:#06141F; }
+
+  /* ---------- Filter bar ---------- */
+  .filter-bar{ display:flex; align-items:center; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+  .seg-control{ display:flex; background:var(--bg-surface); border-radius:var(--r-md); padding:4px; border:1px solid var(--border); }
+  .seg{ padding:8px 16px; border-radius:10px; font-size:12.5px; font-weight:600; color:var(--text-secondary); cursor:pointer; }
+  .seg.active{ background:var(--gradient); color:#06141F; }
+  .filter-chip{
+    display:flex; align-items:center; gap:6px; padding:8px 14px; border-radius:999px; font-size:12.5px; font-weight:600;
+    background:var(--bg-surface); border:1.5px solid var(--border); color:var(--text-secondary); cursor:pointer; transition:all .15s ease;
+  }
+  .filter-chip .dot{ width:8px; height:8px; border-radius:50%; }
+  .filter-chip.active{ background:rgba(61,127,255,0.12); border-color:var(--accent); color:var(--text-primary); }
+  .date-pill{ margin-left:auto; display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:600; color:var(--text-secondary); background:var(--bg-surface); border:1px solid var(--border); border-radius:999px; padding:8px 14px; cursor:pointer; }
+  .date-pill svg{ width:13px; height:13px; }
+
+  /* ---------- Table group rows ---------- */
+  .group-row td{ background:var(--bg-surface-2) !important; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-secondary); padding:10px 12px; border-bottom:1px solid var(--border); }
+  .group-row .group-total{ float:right; font-weight:700; letter-spacing:normal; text-transform:none; font-size:12px; color:var(--text-primary); }
+  .group-row .group-total.income{ color:var(--success); }
+  tbody tr.tx-clickable{ cursor:pointer; }
+  .recur-badge{ width:13px; height:13px; color:var(--text-secondary); display:inline-flex; vertical-align:middle; margin-left:6px; }
+  .recur-badge svg{ width:100%; height:100%; }
+
+  /* ---------- Toggle ---------- */
+  .toggle{ width:44px; height:26px; border-radius:13px; background:var(--bg-surface-2); border:1px solid var(--border); position:relative; cursor:pointer; transition:background .2s ease; flex-shrink:0; }
+  .toggle::after{ content:''; position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:var(--text-secondary); transition:all .2s ease; }
+  .toggle.on{ background:var(--gradient); border-color:transparent; }
+  .toggle.on::after{ left:22px; background:#fff; }
+
+  /* ---------- Detail panel ---------- */
+  .detail-head{ display:flex; flex-direction:column; align-items:center; text-align:center; padding:6px 0 16px; }
+  .detail-icon{ width:56px; height:56px; border-radius:16px; display:flex; align-items:center; justify-content:center; margin-bottom:12px; }
+  .detail-icon svg{ width:24px; height:24px; }
+  .detail-amount{ font-size:24px; font-weight:700; font-variant-numeric:tabular-nums; margin-bottom:4px; }
+  .detail-merchant{ font-size:12.5px; color:var(--text-secondary); }
+  .detail-row{ display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border); font-size:12.5px; }
+  .detail-row:last-child{ border-bottom:none; }
+  .detail-row-label{ color:var(--text-secondary); }
+  .ai-badge{ display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px; background:var(--gradient); color:#06141F; }
+  .ai-badge svg{ width:11px; height:11px; }
+  .cat-picker.small .cat-pick{ width:56px; }
+  .note-field{ width:100%; background:var(--bg-surface-2); border:1.5px solid var(--border); border-radius:var(--r-md); padding:10px 12px; color:var(--text-primary); font-family:'Inter',sans-serif; font-size:12.5px; outline:none; resize:none; margin-bottom:14px; }
+  .back-link{ display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--accent-2); cursor:pointer; margin-bottom:14px; }
+  .back-link svg{ width:14px; height:14px; }
+  .summary-stat{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); font-size:12.5px; }
+  .summary-stat:last-child{ border-bottom:none; }
+  .summary-stat .val{ font-weight:700; font-variant-numeric:tabular-nums; }
+  .summary-stat .val.income{ color:var(--success); }
+
+  /* ---------- Budgets/Goals/Savings panel additions ---------- */
+  .two-col{ display:flex; gap:16px; }
+  .goal-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .goal-card-v{ display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .goal-card-v .ring-wrap{ margin-bottom:14px; }
+  .goal-card-v .goal-name{ font-size:15px; font-weight:700; font-family:'Sora',sans-serif; margin-bottom:4px; }
+  .goal-card-v .goal-sub{ font-size:12px; color:var(--text-secondary); margin-bottom:10px; }
+  .goal-card-v .goal-amounts{ font-size:13px; margin-bottom:12px; }
+  .goal-card-v .goal-amounts strong{ font-size:17px; }
+  .goal-milestones{ display:flex; gap:5px; width:100%; }
+  .milestone{ flex:1; height:5px; border-radius:3px; background:var(--bg-surface-2); }
+  .milestone.done{ background:var(--gradient); }
+  .rule-row{ display:flex; justify-content:space-between; align-items:flex-start; padding:16px 0; border-bottom:1px solid var(--border); gap:16px; }
+  .rule-row:last-child{ border-bottom:none; }
+  .rule-title{ font-size:13.5px; font-weight:700; margin-bottom:4px; }
+  .rule-desc{ font-size:12.5px; color:var(--text-secondary); line-height:1.6; max-width:520px; }
+  .suggestion-box{ display:flex; gap:10px; align-items:flex-start; background:var(--bg-surface-2); border:1px solid var(--border); border-radius:var(--r-md); padding:12px; font-size:12.5px; line-height:1.6; color:var(--text-secondary); margin-bottom:16px; }
+  .suggestion-box svg{ width:16px; height:16px; flex-shrink:0; margin-top:1px; color:var(--accent-2); }
+
+  /* ---------- AI Assistant chat page ---------- */
+  .main.chat-page{ display:flex; flex-direction:column; padding:0; overflow:hidden; }
+  .chat-topbar{ padding:24px 28px 0; flex-shrink:0; }
+  .chat-messages{ flex:1; overflow-y:auto; padding:20px 28px; display:flex; flex-direction:column; gap:14px; max-width:760px; margin:0 auto; width:100%; }
+  .day-divider{ text-align:center; font-size:11px; font-weight:700; letter-spacing:1.5px; color:var(--text-secondary); text-transform:uppercase; margin:6px 0 4px; }
+
+  .msg-row{ display:flex; gap:12px; max-width:100%; }
+  .msg-row.user{ justify-content:flex-end; }
+  .msg-avatar{ width:32px; height:32px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .msg-avatar svg{ width:16px; height:16px; color:#06141F; }
+  .msg-bubble{ max-width:70%; padding:13px 16px; border-radius:16px; font-size:13.5px; line-height:1.65; }
+  .msg-row.ai .msg-bubble{ background:var(--bg-surface); border:1px solid var(--border); border-top-left-radius:4px; }
+  .msg-row.user .msg-bubble{ background:rgba(61,127,255,0.15); border-top-right-radius:4px; }
+  .msg-time{ font-size:10px; color:var(--text-secondary); margin-top:4px; margin-left:44px; }
+
+  .typing-bubble{ display:flex; gap:4px; align-items:center; padding:14px 16px; }
+  .typing-bubble span{ width:6px; height:6px; border-radius:50%; background:var(--text-secondary); animation:typingDot 1.2s infinite ease-in-out; }
+  .typing-bubble span:nth-child(2){ animation-delay:.2s; }
+  .typing-bubble span:nth-child(3){ animation-delay:.4s; }
+  @keyframes typingDot{ 0%,80%,100%{ opacity:.3; transform:scale(0.8);} 40%{ opacity:1; transform:scale(1.1);} }
+
+  .rich-card{ max-width:70%; background:var(--bg-surface); border:1px solid var(--border); border-radius:16px; border-top-left-radius:4px; padding:16px; font-size:13px; }
+  .rich-title{ font-size:13.5px; font-weight:700; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; }
+  .rich-title svg{ width:14px; height:14px; color:var(--text-secondary); transition:transform .2s ease; }
+  .rich-title.open svg{ transform:rotate(180deg); }
+  .rich-body{ color:var(--text-secondary); line-height:1.6; }
+  .rich-expand{ max-height:0; overflow:hidden; transition:max-height .3s ease; }
+  .rich-expand.open{ max-height:400px; margin-top:10px; }
+
+  .compare-row{ display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
+  .compare-label{ display:flex; justify-content:space-between; font-size:11px; color:var(--text-secondary); }
+  .compare-track{ height:6px; background:var(--bg-surface-2); border-radius:3px; position:relative; overflow:hidden; }
+  .compare-fill{ height:100%; border-radius:3px; position:absolute; top:0; left:0; }
+  .compare-fill.prev{ background:var(--border); opacity:.7; }
+
+  .score-row{ display:flex; align-items:center; gap:12px; margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+
+  .save-item{ display:flex; justify-content:space-between; align-items:flex-start; padding:8px 0; border-bottom:1px solid var(--border); gap:10px; }
+  .save-item:last-child{ border-bottom:none; }
+  .save-item-text{ font-size:12.5px; line-height:1.5; }
+  .save-item-amt{ font-size:12.5px; font-weight:700; color:var(--success); white-space:nowrap; }
+  .save-total{ display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:1px solid var(--border); font-weight:700; font-size:13px; }
+  .save-total .amt{ color:var(--success); }
+
+  .alert-card{ border-color:rgba(255,107,107,0.35) !important; }
+  .alert-card .rich-title{ color:var(--error); }
+  .alert-row{ display:flex; justify-content:space-between; font-size:12px; padding:4px 0; }
+  .alert-row .lbl{ color:var(--text-secondary); }
+
+  .goal-mini{ display:flex; align-items:center; gap:12px; }
+
+  .suggested-wrap{ padding:0 28px 12px; flex-shrink:0; max-width:760px; margin:0 auto; width:100%; }
+  .suggested-scroll{ display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; }
+  .suggested-scroll::-webkit-scrollbar{ display:none; }
+  .suggest-chip{
+    flex-shrink:0; font-size:12.5px; font-weight:600; padding:9px 14px; border-radius:999px;
+    background:var(--bg-surface); border:1.5px solid var(--border); color:var(--text-primary);
+    cursor:pointer; white-space:nowrap; transition:all .15s ease;
+  }
+  .suggest-chip:hover{ border-color:var(--accent); }
+
+  .chat-input-bar{ display:flex; align-items:center; gap:10px; padding:14px 28px 24px; border-top:1px solid var(--border); flex-shrink:0; max-width:760px; margin:0 auto; width:100%; }
+  .chat-input-field{
+    flex:1; background:var(--bg-surface); border:1.5px solid var(--border); border-radius:999px;
+    padding:13px 18px; color:var(--text-primary); font-family:'Inter',sans-serif; font-size:14px; outline:none;
+  }
+  .chat-input-field::placeholder{ color:#5F6772; }
+  .send-btn{
+    width:44px; height:44px; border-radius:50%; background:var(--gradient); border:none;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
+  }
+  .send-btn svg{ width:18px; height:18px; color:#06141F; }
+
+  /* ---------- History panel ---------- */
+  .history-item{ padding:10px 0; border-bottom:1px solid var(--border); cursor:pointer; }
+  .history-item:last-child{ border-bottom:none; }
+  .history-item-title{ font-size:12.5px; font-weight:700; margin-bottom:2px; }
+  .history-item-sub{ font-size:11px; color:var(--text-secondary); }
+  .history-item.active .history-item-title{ color:var(--accent-2); }
+  .quick-action{ display:flex; align-items:center; gap:10px; padding:9px 0; font-size:12.5px; font-weight:600; cursor:pointer; }
+  .quick-action svg{ width:15px; height:15px; color:var(--accent-2); flex-shrink:0; }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="stage-header">
+    <div class="eyebrow">ZINKRO WEB — AI ASSISTANT</div>
+    <h1>Desktop AI Assistant</h1>
+    <div class="stage-hint">Same conversational AI as mobile, with conversation history and quick actions in the right panel &middot; try the suggested prompts or type your own</div>
+  </div>
+
+  <div class="browser" id="browser">
+    <div class="browser-bar">
+      <div class="traffic"><span></span><span></span><span></span></div>
+      <div class="url-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        app.zinkro.com/dashboard
+      </div>
+    </div>
+
+    <div class="shell">
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="side-logo">
+          <div class="side-logo-mark">
+            <svg viewBox="0 0 180 180" width="18" height="18">
+              <g transform="translate(8,30)">
+                <path d="M30 0 H8 a14 14 0 0 0 -14 14 v48 a14 14 0 0 0 14 14 H30" fill="none" stroke="#06141F" stroke-width="11" stroke-linecap="round"/>
+                <path d="M74 0 H96 a14 14 0 0 1 14 14 v48 a14 14 0 0 1 -14 14 H74" fill="none" stroke="#06141F" stroke-width="11" stroke-linecap="round"/>
+                <polyline points="22,52 40,52 50,28 64,68 78,38 92,38" fill="none" stroke="#06141F" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+              </g>
+            </svg>
+          </div>
+          <div class="side-logo-text">Zinkro</div>
+        </div>
+
+        <div class="nav-section-label">Menu</div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 2l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+          Dashboard
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          Transactions
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Budgets
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
+          Goals
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Savings
+        </div>
+        <div class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3"/><path d="M12 2a5 5 0 0 1 5 5v3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/></svg>
+          AI Assistant
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+          Reports
+        </div>
+
+        <div class="nav-spacer"></div>
+
+        <div class="nav-item" style="margin-bottom:8px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </div>
+
+        <div class="side-footer">
+          <div class="side-avatar">AT</div>
+          <div>
+            <div class="side-footer-name">Tomi Bello</div>
+            <div class="side-footer-plan">Free Plan</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+      </div>
+
+      <!-- Main -->
+      <div class="main chat-page">
+
+        <div class="topbar chat-topbar">
+          <div class="topbar-title">
+            <h1>AI Assistant</h1>
+            <div class="sub">Your financial coach &#8226; always on</div>
+          </div>
+          <div class="topbar-spacer"></div>
+          <div class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div>
+          <div class="topbar-avatar">AT</div>
+        </div>
+
+        <div class="chat-messages" id="chat">
+
+          <div class="day-divider">Sunday, 7 June</div>
+
+          <div class="msg-row ai">
+            <div class="msg-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3"/><path d="M12 2a5 5 0 0 1 5 5v3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/></svg></div>
+            <div class="rich-card">
+              <div class="msg-bubble" style="padding:0 0 10px; background:none; border:none; max-width:100%;">Good morning, Tomi! Here's your Weekly Review &#128075;</div>
+              <div class="rich-title" onclick="toggleExpand(this)">
+                <span>Week of 1&ndash;7 June</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
+              <div class="rich-body">You spent <strong style="color:var(--text-primary);">&#8358;60,000</strong>, 8% less than last week. Transport dropped 18% &#8212; nice work using the BRT more!</div>
+              <div class="rich-expand">
+                <div class="compare-row">
+                  <div class="compare-label"><span>Feeding</span><span>&#8358;15,200</span></div>
+                  <div class="compare-track"><div class="compare-fill prev" style="width:78%;"></div><div class="compare-fill" style="width:64%; background:var(--cat-feeding);"></div></div>
+                </div>
+                <div class="compare-row">
+                  <div class="compare-label"><span>Transport</span><span>&#8358;2,300</span></div>
+                  <div class="compare-track"><div class="compare-fill prev" style="width:55%;"></div><div class="compare-fill" style="width:32%; background:var(--cat-transport);"></div></div>
+                </div>
+                <div class="compare-row">
+                  <div class="compare-label"><span>Utilities</span><span>&#8358;42,500</span></div>
+                  <div class="compare-track"><div class="compare-fill prev" style="width:60%;"></div><div class="compare-fill" style="width:80%; background:var(--cat-utilities);"></div></div>
+                </div>
+                <div class="rich-body" style="font-size:11px; margin-top:4px;">Lighter bars = this week, darker bars = last week</div>
+              </div>
+            </div>
+          </div>
+          <div class="msg-time">8:02 AM</div>
+
+          <div class="msg-row ai">
+            <div class="msg-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg></div>
+            <div class="rich-card alert-card">
+              <div class="rich-title"><span>&#9888;&#65039; Unusual Transaction</span></div>
+              <div class="rich-body">I noticed a transfer to a new recipient that doesn't match your usual pattern:</div>
+              <div style="margin-top:8px;">
+                <div class="alert-row"><span class="lbl">Recipient</span><span>John D. &#8212; Zenith Bank</span></div>
+                <div class="alert-row"><span class="lbl">Amount</span><span style="font-weight:700;">&#8722;&#8358;120,000</span></div>
+                <div class="alert-row"><span class="lbl">Time</span><span>Today, 2:14 PM</span></div>
+              </div>
+              <div class="chip-row" id="riskActions" style="margin-top:12px;">
+                <div class="chip chip-primary" onclick="confirmRisk(true)" style="text-align:center; flex:1; padding:9px;">Yes, that's me</div>
+                <div class="chip chip-ghost" onclick="confirmRisk(false)" style="text-align:center; flex:1; padding:9px; background:rgba(255,107,107,0.12); color:var(--error);">No, flag this</div>
+              </div>
+            </div>
+          </div>
+          <div class="msg-time">2:15 PM</div>
+
+          <div class="day-divider">Today</div>
+
+          <div class="msg-row user">
+            <div class="msg-bubble">How am I doing this month overall?</div>
+          </div>
+
+          <div class="msg-row ai">
+            <div class="msg-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3"/><path d="M12 2a5 5 0 0 1 5 5v3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/></svg></div>
+            <div class="rich-card">
+              <div class="score-row">
+                <div class="ring-wrap" style="width:50px; height:50px;">
+                  <svg width="50" height="50" viewBox="0 0 50 50">
+                    <circle cx="25" cy="25" r="21" fill="none" stroke="#2A2E37" stroke-width="5"/>
+                    <circle cx="25" cy="25" r="21" fill="none" stroke="url(#gA)" stroke-width="5" stroke-linecap="round" stroke-dasharray="131.9" stroke-dashoffset="29"/>
+                    <defs><linearGradient id="gA" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3D7FFF"/><stop offset="100%" stop-color="#00D4D4"/></linearGradient></defs>
+                  </svg>
+                  <div class="ring-center"><div class="ring-score" style="font-size:14px;">78</div></div>
+                </div>
+                <div>
+                  <div style="font-weight:700; font-size:13px;">Financial Health: Good</div>
+                  <div style="font-size:11px; color:var(--success);">&#9650; +3 points vs last month</div>
+                </div>
+              </div>
+              <div class="rich-body">You're doing well overall &#8212; income is steady and savings are up 8%. One thing to watch: <strong style="color:var(--text-primary);">Utilities is 22% over budget</strong> this month.</div>
+            </div>
+          </div>
+          <div class="msg-time">Just now</div>
+
+        </div>
+
+        <div class="suggested-wrap">
+          <div class="suggested-scroll" id="suggested">
+            <div class="suggest-chip" onclick="sendSuggested('Where can I save more?')">Where can I save more?</div>
+            <div class="suggest-chip" onclick="sendSuggested('Am I on track for my Lagos Trip goal?')">Am I on track for my goals?</div>
+            <div class="suggest-chip" onclick="sendSuggested('Show my biggest expenses')">Show my biggest expenses</div>
+            <div class="suggest-chip" onclick="sendSuggested('Compare this month to last month')">Compare to last month</div>
+          </div>
+        </div>
+
+        <div class="chat-input-bar">
+          <input class="chat-input-field" id="inputField" type="text" placeholder="Ask Zinkro AI anything...">
+          <button class="send-btn" onclick="sendTyped()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Right panel -->
+      <div class="right-panel">
+
+        <div class="panel-section">
+          <div class="panel-title">Conversation History</div>
+          <div class="history-item active">
+            <div class="history-item-title">Weekly Review &amp; Health Check</div>
+            <div class="history-item-sub">Today, 8:02 AM</div>
+          </div>
+          <div class="history-item">
+            <div class="history-item-title">Budget question &#8212; Utilities</div>
+            <div class="history-item-sub">5 June</div>
+          </div>
+          <div class="history-item">
+            <div class="history-item-title">Setting up Emergency Fund goal</div>
+            <div class="history-item-sub">1 June</div>
+          </div>
+          <div class="history-item">
+            <div class="history-item-title">Lagos Trip planning</div>
+            <div class="history-item-sub">28 May</div>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-title">Quick Actions</div>
+          <div class="quick-action" onclick="sendSuggested('Run my Weekly Review')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+            Run Weekly Review
+          </div>
+          <div class="quick-action" onclick="sendSuggested('Am I on track for my Lagos Trip goal?')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
+            Check Goal Progress
+          </div>
+          <div class="quick-action" onclick="sendSuggested('Where can I save more?')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Find Savings Opportunities
+          </div>
+          <div class="quick-action" onclick="sendSuggested('Show my biggest expenses')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            Review Recent Transactions
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <div class="ai-card">
+            <div class="ai-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3"/><path d="M12 2a5 5 0 0 1 5 5v3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/></svg></div>
+            <div>
+              <div class="ai-text">Zinkro AI uses your transaction history to give grounded, specific answers &#8212; no generic advice.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const chat = document.getElementById('chat');
+  const aiAvatarSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3"/><path d="M12 2a5 5 0 0 1 5 5v3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/></svg>';
+
+  function scrollToBottom(){
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function toggleExpand(el){
+    el.classList.toggle('open');
+    el.nextElementSibling.nextElementSibling.classList.toggle('open');
+  }
+
+  function addUserMessage(text){
+    const row = document.createElement('div');
+    row.className = 'msg-row user';
+    row.innerHTML = '<div class="msg-bubble"></div>';
+    row.querySelector('.msg-bubble').textContent = text;
+    chat.appendChild(row);
+    scrollToBottom();
+  }
+
+  function addTyping(){
+    const row = document.createElement('div');
+    row.className = 'msg-row ai';
+    row.id = 'typingRow';
+    row.innerHTML = '<div class="msg-avatar">' + aiAvatarSVG + '</div><div class="rich-card typing-bubble"><span></span><span></span><span></span></div>';
+    chat.appendChild(row);
+    scrollToBottom();
+  }
+
+  function removeTyping(){
+    const t = document.getElementById('typingRow');
+    if(t) t.remove();
+  }
+
+  function addAIMessage(html){
+    const row = document.createElement('div');
+    row.className = 'msg-row ai';
+    row.innerHTML = '<div class="msg-avatar">' + aiAvatarSVG + '</div>' + html;
+    chat.appendChild(row);
+    scrollToBottom();
+  }
+
+  const responses = {
+    "Where can I save more?": '<div class="rich-card">' +
+        '<div class="rich-body" style="margin-bottom:8px;">I found three quick wins worth about <strong style="color:var(--success);">\u20A617,000/month</strong> if you act on all of them:</div>' +
+        '<div class="save-item"><div class="save-item-text">Cancel unused <strong>Netflix</strong> subscription \u2014 last watched 47 days ago</div><div class="save-item-amt">+\u20A64,400</div></div>' +
+        '<div class="save-item"><div class="save-item-text">Switch <strong>Electricity</strong> to prepaid \u2014 estimated monthly savings</div><div class="save-item-amt">+\u20A64,000</div></div>' +
+        '<div class="save-item"><div class="save-item-text">Cook at home 2 more days/week \u2014 based on your <strong>Feeding</strong> pattern</div><div class="save-item-amt">+\u20A68,600</div></div>' +
+        '<div class="save-total"><span>Total potential savings</span><span class="amt">\u20A617,000/mo</span></div>' +
+      '</div>',
+    "Am I on track for my Lagos Trip goal?": '<div class="rich-card">' +
+        '<div class="goal-mini">' +
+          '<div class="ring-wrap" style="width:50px; height:50px;">' +
+            '<svg width="50" height="50" viewBox="0 0 50 50">' +
+              '<circle cx="25" cy="25" r="21" fill="none" stroke="#2A2E37" stroke-width="5"/>' +
+              '<circle cx="25" cy="25" r="21" fill="none" stroke="url(#gG)" stroke-width="5" stroke-linecap="round" stroke-dasharray="131.9" stroke-dashoffset="48.8"/>' +
+              '<defs><linearGradient id="gG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3D7FFF"/><stop offset="100%" stop-color="#00D4D4"/></linearGradient></defs>' +
+            '</svg>' +
+            '<div class="ring-center"><div class="ring-score" style="font-size:12px;">63%</div></div>' +
+          '</div>' +
+          '<div class="rich-body">Yes \u2014 you\\'re at <strong style="color:var(--text-primary);">\u20A6126,000 of \u20A6200,000</strong>. At your current pace, you\\'ll hit your 14 March target with about <strong style="color:var(--success);">9 days to spare</strong>.</div>' +
+        '</div>' +
+      '</div>',
+    "Show my biggest expenses": '<div class="rich-card">' +
+        '<div class="rich-body" style="margin-bottom:8px;">Your top 3 expenses this month:</div>' +
+        '<div class="save-item"><div class="save-item-text">1. Rent \u2014 Lekki Apartment</div><div class="save-item-amt" style="color:var(--text-primary);">\u20A660,000</div></div>' +
+        '<div class="save-item"><div class="save-item-text">2. Electricity (EKEDC)</div><div class="save-item-amt" style="color:var(--text-primary);">\u20A618,000</div></div>' +
+        '<div class="save-item"><div class="save-item-text">3. Feeding (Shoprite + Coffee Republic)</div><div class="save-item-amt" style="color:var(--text-primary);">\u20A619,700</div></div>' +
+      '</div>',
+    "Compare this month to last month": '<div class="rich-card">' +
+        '<div class="compare-row">' +
+          '<div class="compare-label"><span>Total Spending</span><span>\u221212%</span></div>' +
+          '<div class="compare-track"><div class="compare-fill prev" style="width:90%;"></div><div class="compare-fill" style="width:78%; background:var(--accent);"></div></div>' +
+        '</div>' +
+        '<div class="compare-row">' +
+          '<div class="compare-label"><span>Total Savings</span><span>+8%</span></div>' +
+          '<div class="compare-track"><div class="compare-fill prev" style="width:60%;"></div><div class="compare-fill" style="width:68%; background:var(--success);"></div></div>' +
+        '</div>' +
+        '<div class="rich-body" style="font-size:11px; margin-top:4px;">Lighter bars = this month, darker bars = last month. Overall, a stronger month than last.</div>' +
+      '</div>',
+    "Run my Weekly Review": '<div class="rich-card">' +
+        '<div class="rich-body">Your next Weekly Review will be ready Sunday morning, as usual. This week so far: spending is tracking close to last week, with Utilities the main category to watch.</div>' +
+      '</div>'
+  };
+
+  function sendSuggested(text){
+    addUserMessage(text);
+    addTyping();
+    setTimeout(function(){
+      removeTyping();
+      addAIMessage(responses[text] || genericResponse());
+    }, 1000);
+  }
+
+  function genericResponse(){
+    return '<div class="rich-card"><div class="rich-body">Let me check that against your last 90 days of transactions... Based on what I\\'m seeing, your spending is broadly in line with your usual pattern this month \u2014 nothing unusual stands out. Want me to dig into a specific category?</div></div>';
+  }
+
+  function sendTyped(){
+    const field = document.getElementById('inputField');
+    const text = field.value.trim();
+    if(!text) return;
+    addUserMessage(text);
+    field.value = '';
+    addTyping();
+    setTimeout(function(){
+      removeTyping();
+      addAIMessage(responses[text] || genericResponse());
+    }, 1000);
+  }
+
+  document.getElementById('inputField').addEventListener('keydown', function(e){
+    if(e.key === 'Enter') sendTyped();
+  });
+
+  function confirmRisk(isMe){
+    document.getElementById('riskActions').innerHTML = isMe
+      ? '<div style="font-size:12px; color:var(--success); font-weight:600;">&#10003; Thanks for confirming \u2014 no further action needed.</div>'
+      : '<div style="font-size:12px; color:var(--error); font-weight:600;">&#10003; Flagged. We\\'ve paused alerts for this recipient pending your review.</div>';
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zinkro — Transactions (Web)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-canvas:#0F1115;
+    --bg-surface:#181B22;
+    --bg-surface-2:#20242E;
+    --border:#2A2E37;
+    --text-primary:#F5F6FA;
+    --text-secondary:#8A8F98;
+    --accent:#3D7FFF;
+    --accent-2:#00D4D4;
+    --success:#34D399;
+    --error:#FF6B6B;
+    --warning:#FFB84D;
+    --gradient: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:28px;
+
+    --cat-feeding:#FFB84D;
+    --cat-transport:#00D4D4;
+    --cat-utilities:#3D7FFF;
+    --cat-gifts:#FF6B6B;
+    --cat-rent:#9B7EDE;
+    --cat-other:#8A8F98;
+    --cat-income:#34D399;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  body{
+    font-family:'Inter', sans-serif;
+    background:#E7E9EE;
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:32px 16px; color:var(--text-primary);
+  }
+  h1,h2,h3,.font-display{ font-family:'Sora', sans-serif; }
+
+  .stage{ display:flex; flex-direction:column; align-items:center; gap:18px; width:100%; }
+  .stage-header{ text-align:center; }
+  .stage-header .eyebrow{ font-size:11px; font-weight:700; letter-spacing:3px; color:#9098A6; text-transform:uppercase; }
+  .stage-header h1{ font-size:20px; font-weight:700; color:#0F1115; margin-top:4px; }
+  .stage-hint{ font-size:12px; color:#6B7078; margin-top:2px; }
+
+  /* ---------- Browser frame ---------- */
+  .browser{
+    width:100%; max-width:1440px; height:900px;
+    background:var(--bg-canvas);
+    border-radius:16px; overflow:hidden;
+    box-shadow:0 30px 60px -20px rgba(15,17,21,0.45), 0 0 0 1px rgba(255,255,255,0.04);
+    display:flex; flex-direction:column;
+    position:relative;
+  }
+  .browser-bar{ display:flex; align-items:center; gap:14px; padding:12px 16px; background:#05060A; flex-shrink:0; }
+  .traffic{ display:flex; gap:7px; }
+  .traffic span{ width:11px; height:11px; border-radius:50%; }
+  .traffic span:nth-child(1){ background:#FF6B6B; }
+  .traffic span:nth-child(2){ background:#FFB84D; }
+  .traffic span:nth-child(3){ background:#34D399; }
+  .url-bar{ flex:1; max-width:480px; background:var(--bg-surface); border:1px solid var(--border); border-radius:8px; padding:6px 14px; font-size:12px; color:var(--text-secondary); display:flex; align-items:center; gap:8px; }
+  .url-bar svg{ width:12px; height:12px; color:var(--success); }
+
+  /* ---------- App shell ---------- */
+  .shell{ flex:1; display:flex; overflow:hidden; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{ width:236px; background:var(--bg-surface); border-right:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; padding:20px 14px; }
+  .side-logo{ display:flex; align-items:center; gap:10px; padding:0 8px 24px; }
+  .side-logo-mark{ width:34px; height:34px; border-radius:10px; background:var(--gradient); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .side-logo-mark svg{ width:18px; height:18px; color:#06141F; }
+  .side-logo-text{ font-family:'Sora',sans-serif; font-weight:800; font-size:17px; letter-spacing:0.5px; }
+
+  .nav-section-label{ font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-secondary); padding:14px 12px 8px; }
+  .nav-item{ display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; font-size:13.5px; font-weight:600; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; margin-bottom:2px; }
+  .nav-item svg{ width:18px; height:18px; flex-shrink:0; }
+  .nav-item:hover{ background:var(--bg-surface-2); color:var(--text-primary); }
+  .nav-item.active{ background:rgba(61,127,255,0.12); color:var(--text-primary); }
+  .nav-item.active svg{ color:var(--accent); }
+  .nav-spacer{ flex:1; }
+  .side-footer{ border-top:1px solid var(--border); padding-top:14px; display:flex; align-items:center; gap:10px; }
+  .side-avatar{ width:36px; height:36px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-weight:700; font-size:13px; color:#06141F; flex-shrink:0; }
+  .side-footer-name{ font-size:13px; font-weight:700; }
+  .side-footer-plan{ font-size:11px; color:var(--text-secondary); }
+  .side-footer svg{ width:14px; height:14px; color:var(--text-secondary); margin-left:auto; }
+
+  /* ---------- Main ---------- */
+  .main{ flex:1; overflow-y:auto; padding:24px 28px; min-width:0; }
+  .topbar{ display:flex; align-items:center; gap:16px; margin-bottom:24px; }
+  .topbar-title h1{ font-size:22px; font-weight:700; }
+  .topbar-title .sub{ font-size:12.5px; color:var(--text-secondary); margin-top:2px; }
+  .topbar-spacer{ flex:1; }
+  .search-input{ width:240px; background:var(--bg-surface); border:1.5px solid var(--border); border-radius:var(--r-md); padding:10px 14px; padding-left:38px; color:var(--text-primary); font-family:'Inter',sans-serif; font-size:13px; outline:none; position:relative; }
+  .search-wrap{ position:relative; }
+  .search-wrap svg{ position:absolute; left:13px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--text-secondary); }
+  .icon-btn{ width:38px; height:38px; border-radius:50%; background:var(--bg-surface); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; cursor:pointer; }
+  .icon-btn svg{ width:16px; height:16px; color:var(--text-secondary); }
+  .icon-btn .dot{ position:absolute; top:8px; right:8px; width:7px; height:7px; border-radius:50%; background:var(--error); border:2px solid var(--bg-canvas); }
+  .btn-add{ display:flex; align-items:center; gap:8px; background:var(--gradient); color:#06141F; font-weight:700; font-size:13px; padding:10px 18px; border-radius:var(--r-md); border:none; cursor:pointer; white-space:nowrap; }
+  .btn-add svg{ width:16px; height:16px; }
+  .topbar-avatar{ width:38px; height:38px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-weight:700; font-size:13px; color:#06141F; flex-shrink:0; }
+
+  /* ---------- Cards & grid ---------- */
+  .card{ background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:18px; }
+  .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
+  .stat-label{ font-size:12px; color:var(--text-secondary); margin-bottom:8px; }
+  .stat-value{ font-size:24px; font-weight:700; font-variant-numeric:tabular-nums; margin-bottom:8px; }
+  .trend-pill{ display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; }
+  .trend-up{ background:rgba(52,211,153,0.12); color:var(--success); }
+
+  .ring-wrap{ position:relative; width:48px; height:48px; flex-shrink:0; }
+  .ring-wrap svg{ transform:rotate(-90deg); }
+  .ring-center{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .ring-score{ font-size:14px; font-weight:800; font-family:'Sora',sans-serif; }
+
+  .chart-row{ display:grid; grid-template-columns:1.6fr 1fr; gap:16px; margin-bottom:20px; }
+  .card-title{ font-size:14px; font-weight:700; font-family:'Sora',sans-serif; margin-bottom:4px; }
+  .card-sub{ font-size:12px; color:var(--text-secondary); margin-bottom:14px; }
+
+  /* Net worth chart */
+  .nw-chart-wrap{ position:relative; }
+  .nw-axis{ display:flex; justify-content:space-between; font-size:11px; color:var(--text-secondary); margin-top:8px; }
+
+  /* Donut */
+  .donut-card{ display:flex; flex-direction:column; align-items:center; }
+  .donut{
+    width:140px; height:140px; border-radius:50%;
+    background: conic-gradient(#FFB84D 0deg 103.7deg, #00D4D4 103.7deg 137.3deg, #3D7FFF 137.3deg 197.1deg, #9B7EDE 197.1deg 360deg);
+    display:flex; align-items:center; justify-content:center; margin:6px 0 16px;
+  }
+  .donut-hole{ width:92px; height:92px; border-radius:50%; background:var(--bg-surface); display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .donut-hole .pct{ font-size:22px; font-weight:800; font-family:'Sora',sans-serif; }
+  .donut-hole .lbl{ font-size:10px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px; }
+  .legend{ width:100%; display:flex; flex-direction:column; gap:8px; }
+  .legend-row{ display:flex; justify-content:space-between; align-items:center; font-size:12.5px; }
+  .legend-left{ display:flex; align-items:center; gap:8px; color:var(--text-secondary); }
+  .legend-dot{ width:9px; height:9px; border-radius:3px; flex-shrink:0; }
+  .legend-val{ font-weight:700; font-variant-numeric:tabular-nums; }
+
+  /* Budget summary */
+  .budget-section{ margin-bottom:20px; }
+  .budget-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+  .budget-card .budget-top{ display:flex; justify-content:space-between; align-items:center; font-size:13px; margin-bottom:8px; }
+  .budget-cat{ display:flex; align-items:center; gap:8px; font-weight:700; }
+  .cat-dot{ width:10px; height:10px; border-radius:4px; flex-shrink:0; }
+  .budget-track{ height:7px; background:var(--bg-surface-2); border-radius:4px; overflow:hidden; margin-bottom:6px; }
+  .budget-fill{ height:100%; border-radius:4px; }
+  .budget-foot{ font-size:11px; color:var(--text-secondary); }
+  .over-tag{ font-size:10px; font-weight:700; color:var(--error); text-transform:uppercase; letter-spacing:.5px; background:rgba(255,107,107,0.12); padding:2px 7px; border-radius:6px; }
+  .alert-banner{ display:flex; gap:12px; align-items:flex-start; background:rgba(255,107,107,0.08); border:1px solid rgba(255,107,107,0.3); border-left:3px solid var(--error); border-radius:var(--r-md); padding:14px; margin-bottom:14px; font-size:13px; line-height:1.5; }
+  .alert-banner svg{ width:18px; height:18px; color:var(--error); flex-shrink:0; }
+  .alert-banner strong{ color:var(--error); }
+
+  /* Transactions table */
+  .table-wrap{ overflow-x:auto; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  thead th{ text-align:left; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-secondary); padding:0 12px 10px; border-bottom:1px solid var(--border); }
+  tbody td{ padding:14px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:nth-child(even){ background:rgba(255,255,255,0.015); }
+  tbody tr:hover{ background:rgba(61,127,255,0.04); }
+  .tx-merchant{ display:flex; align-items:center; gap:10px; font-weight:600; }
+  .tx-icon{ width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .tx-icon svg{ width:15px; height:15px; }
+  .cat-tag{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--text-secondary); }
+  .amount-cell{ font-weight:700; font-variant-numeric:tabular-nums; text-align:right; }
+  .amount-cell.income{ color:var(--success); }
+  th:last-child, td.amount-cell{ text-align:right; }
+
+  /* ---------- Right panel ---------- */
+  .right-panel{ width:312px; border-left:1px solid var(--border); padding:24px 20px; flex-shrink:0; overflow-y:auto; }
+  .panel-section{ margin-bottom:24px; }
+  .panel-title{ font-size:13px; font-weight:700; font-family:'Sora',sans-serif; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; }
+  .panel-link{ font-size:11.5px; font-weight:600; color:var(--accent-2); cursor:pointer; }
+
+  .ai-card{ display:flex; gap:10px; margin-bottom:10px; }
+  .ai-avatar{ width:30px; height:30px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .ai-avatar svg{ width:15px; height:15px; color:#06141F; }
+  .ai-text{ font-size:12.5px; line-height:1.6; }
+  .chip-row{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .chip{ font-size:11px; font-weight:600; padding:5px 10px; border-radius:999px; cursor:pointer; }
+  .chip-primary{ background:rgba(61,127,255,0.12); color:var(--accent); }
+  .chip-ghost{ background:var(--bg-surface-2); color:var(--text-secondary); }
+
+  .goal-row{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .goal-info{ flex:1; }
+  .goal-name{ font-size:12.5px; font-weight:700; }
+  .goal-sub{ font-size:11px; color:var(--text-secondary); margin-top:2px; }
+
+  .bill-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+  .bill-row:last-child{ border-bottom:none; }
+  .bill-name{ font-size:12.5px; font-weight:600; }
+  .bill-due{ font-size:10.5px; color:var(--text-secondary); margin-top:2px; }
+  .bill-due.soon{ color:var(--warning); }
+  .bill-amount{ font-size:12.5px; font-weight:700; font-variant-numeric:tabular-nums; }
+
+  /* ---------- Modal ---------- */
+  .overlay{ position:absolute; inset:0; background:rgba(0,0,0,0.55); opacity:0; pointer-events:none; transition:opacity .25s ease; z-index:60; display:flex; align-items:center; justify-content:center; }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .modal{ width:480px; max-height:85%; overflow-y:auto; background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--r-xl); padding:24px; transform:scale(.96); opacity:0; transition:all .2s ease; }
+  .overlay.show .modal{ transform:scale(1); opacity:1; }
+  .modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+  .modal-head h2{ font-size:18px; }
+  .modal-close{ width:32px; height:32px; border-radius:50%; background:var(--bg-surface-2); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .modal-close svg{ width:16px; height:16px; color:var(--text-secondary); }
+  .field-label{ font-size:13px; color:var(--text-secondary); margin-bottom:6px; display:block; font-weight:500; }
+  .field{ width:100%; background:var(--bg-surface-2); border:1.5px solid var(--border); border-radius:var(--r-md); padding:12px 14px; color:var(--text-primary); font-family:'Inter',sans-serif; font-size:14px; margin-bottom:14px; outline:none; }
+  .field-row{ display:flex; gap:12px; }
+  .field-row .field{ flex:1; }
+  .cat-picker{ display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; margin-bottom:14px; }
+  .cat-pick{ flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:6px; width:64px; padding:10px 6px; border-radius:14px; border:1.5px solid var(--border); cursor:pointer; transition:all .15s ease; }
+  .cat-pick.active{ border-color:var(--accent); background:rgba(61,127,255,0.08); }
+  .cat-pick-icon{ width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; }
+  .cat-pick-icon svg{ width:14px; height:14px; }
+  .cat-pick-label{ font-size:10px; font-weight:600; color:var(--text-secondary); text-align:center; }
+  .cat-pick.active .cat-pick-label{ color:var(--text-primary); }
+  .btn{ width:100%; border:none; border-radius:var(--r-md); font-family:'Inter',sans-serif; font-weight:600; font-size:15px; padding:13px; cursor:pointer; text-align:center; }
+  .btn-primary{ background:var(--gradient); color:#06141F; }
+
+  /* ---------- Filter bar ---------- */
+  .filter-bar{ display:flex; align-items:center; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+  .seg-control{ display:flex; background:var(--bg-surface); border-radius:var(--r-md); padding:4px; border:1px solid var(--border); }
+  .seg{ padding:8px 16px; border-radius:10px; font-size:12.5px; font-weight:600; color:var(--text-secondary); cursor:pointer; }
+  .seg.active{ background:var(--gradient); color:#06141F; }
+  .filter-chip{
+    display:flex; align-items:center; gap:6px; padding:8px 14px; border-radius:999px; font-size:12.5px; font-weight:600;
+    background:var(--bg-surface); border:1.5px solid var(--border); color:var(--text-secondary); cursor:pointer; transition:all .15s ease;
+  }
+  .filter-chip .dot{ width:8px; height:8px; border-radius:50%; }
+  .filter-chip.active{ background:rgba(61,127,255,0.12); border-color:var(--accent); color:var(--text-primary); }
+  .date-pill{ margin-left:auto; display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:600; color:var(--text-secondary); background:var(--bg-surface); border:1px solid var(--border); border-radius:999px; padding:8px 14px; cursor:pointer; }
+  .date-pill svg{ width:13px; height:13px; }
+
+  /* ---------- Table group rows ---------- */
+  .group-row td{ background:var(--bg-surface-2) !important; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-secondary); padding:10px 12px; border-bottom:1px solid var(--border); }
+  .group-row .group-total{ float:right; font-weight:700; letter-spacing:normal; text-transform:none; font-size:12px; color:var(--text-primary); }
+  .group-row .group-total.income{ color:var(--success); }
+  tbody tr.tx-clickable{ cursor:pointer; }
+  .recur-badge{ width:13px; height:13px; color:var(--text-secondary); display:inline-flex; vertical-align:middle; margin-left:6px; }
+  .recur-badge svg{ width:100%; height:100%; }
+
+  /* ---------- Toggle ---------- */
+  .toggle{ width:44px; height:26px; border-radius:13px; background:var(--bg-surface-2); border:1px solid var(--border); position:relative; cursor:pointer; transition:background .2s ease; flex-shrink:0; }
+  .toggle::after{ content:''; position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:var(--text-secondary); transition:all .2s ease; }
+  .toggle.on{ background:var(--gradient); border-color:transparent; }
+  .toggle.on::after{ left:22px; background:#fff; }
+
+  /* ---------- Detail panel ---------- */
+  .detail-head{ display:flex; flex-direction:column; align-items:center; text-align:center; padding:6px 0 16px; }
+  .detail-icon{ width:56px; height:56px; border-radius:16px; display:flex; align-items:center; justify-content:center; margin-bottom:12px; }
+  .detail-icon svg{ width:24px; height:24px; }
+  .detail-amount{ font-size:24px; font-weight:700; font-variant-numeric:tabular-nums; margin-bottom:4px; }
+  .detail-merchant{ font-size:12.5px; color:var(--text-secondary); }
+  .detail-row{ display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border); font-size:12.5px; }
+  .detail-row:last-child{ border-bottom:none; }
+  .detail-row-label{ color:var(--text-secondary); }
+  .ai-badge{ display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px; background:var(--gradient); color:#06141F; }
+  .ai-badge svg{ width:11px; height:11px; }
+  .cat-picker.small .cat-pick{ width:56px; }
+  .note-field{ width:100%; background:var(--bg-surface-2); border:1.5px solid var(--border); border-radius:var(--r-md); padding:10px 12px; color:var(--text-primary); font-family:'Inter',sans-serif; font-size:12.5px; outline:none; resize:none; margin-bottom:14px; }
+  .back-link{ display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--accent-2); cursor:pointer; margin-bottom:14px; }
+  .back-link svg{ width:14px; height:14px; }
+  .summary-stat{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); font-size:12.5px; }
+  .summary-stat:last-child{ border-bottom:none; }
+  .summary-stat .val{ font-weight:700; font-variant-numeric:tabular-nums; }
+  .summary-stat .val.income{ color:var(--success); }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="stage-header">
+    <div class="eyebrow">ZINKRO WEB — TRANSACTIONS</div>
+    <h1>Desktop Transactions</h1>
+    <div class="stage-hint">Filter by category or type &middot; click any row to open the detail panel on the right &middot; "Add Transaction" opens the modal</div>
+  </div>
+
+  <div class="browser" id="browser">
+    <div class="browser-bar">
+      <div class="traffic"><span></span><span></span><span></span></div>
+      <div class="url-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        app.zinkro.com/dashboard
+      </div>
+    </div>
+
+    <div class="shell">
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="side-logo">
+          <div class="side-logo-mark">
+            <svg viewBox="0 0 180 180" width="18" height="18">
+              <g transform="translate(8,30)">
+                <path d="M30 0 H8 a14 14 0 0 0 -14 14 v48 a14 14 0 0 0 14 14 H30" fill="none" stroke="#06141F" stroke-width="11" stroke-linecap="round"/>
+                <path d="M74 0 H96 a14 14 0 0 1 14 14 v48 a14 14 0 0 1 -14 14 H74" fill="none" stroke="#06141F" stroke-width="11" stroke-linecap="round"/>
+                <polyline points="22,52 40,52 50,28 64,68 78,38 92,38" fill="none" stroke="#06141F" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+              </g>
+            </svg>
+          </div>
+          <div class="side-logo-text">Zinkro</div>
+        </div>
+
+        <div class="nav-section-label">Menu</div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 2l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+          Dashboard
+        </div>
+        <div class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          Transactions
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Budgets
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
+          Goals
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Savings
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3"/><path d="M12 2a5 5 0 0 1 5 5v3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/></svg>
+          AI Assistant
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+          Reports
+        </div>
+
+        <div class="nav-spacer"></div>
+
+        <div class="nav-item" style="margin-bottom:8px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </div>
+
+        <div class="side-footer">
+          <div class="side-avatar">AT</div>
+          <div>
+            <div class="side-footer-name">Tomi Bello</div>
+            <div class="side-footer-plan">Free Plan</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+      </div>
+
+      <!-- Main -->
+      <div class="main">
+
+        <div class="topbar">
+          <div class="topbar-title">
+            <h1>Transactions</h1>
+            <div class="sub">142 transactions &#8226; June 2026</div>
+          </div>
+          <div class="topbar-spacer"></div>
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
+            <input class="search-input" placeholder="Search transactions, reports...">
+          </div>
+          <div class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="dot"></span></div>
+          <button class="btn-add" onclick="openModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            Add Transaction
+          </button>
+          <div class="topbar-avatar">AT</div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar">
+          <div class="seg-control">
+            <div class="seg active">All</div>
+            <div class="seg">Income</div>
+            <div class="seg">Expenses</div>
+          </div>
+          <div class="filter-chip active" data-cat="all" onclick="setCatFilter(this,'all')">All Categories</div>
+          <div class="filter-chip" data-cat="feeding" onclick="setCatFilter(this,'feeding')"><span class="dot" style="background:var(--cat-feeding);"></span>Feeding</div>
+          <div class="filter-chip" data-cat="transport" onclick="setCatFilter(this,'transport')"><span class="dot" style="background:var(--cat-transport);"></span>Transport</div>
+          <div class="filter-chip" data-cat="utilities" onclick="setCatFilter(this,'utilities')"><span class="dot" style="background:var(--cat-utilities);"></span>Utilities</div>
+          <div class="filter-chip" data-cat="gifts" onclick="setCatFilter(this,'gifts')"><span class="dot" style="background:var(--cat-gifts);"></span>Gifts &amp; Family</div>
+          <div class="filter-chip" data-cat="rent" onclick="setCatFilter(this,'rent')"><span class="dot" style="background:var(--cat-rent);"></span>Rent</div>
+          <div class="filter-chip" data-cat="other" onclick="setCatFilter(this,'other')"><span class="dot" style="background:var(--cat-other);"></span>Other</div>
+          <div class="date-pill">
+            June 2026
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+        </div>
+
+        <!-- Transactions table -->
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Date</th><th>Merchant</th><th>Category</th><th>Account</th><th>Amount</th></tr>
+              </thead>
+              <tbody id="txBody">
+
+                <tr class="group-row"><td colspan="5">Today &middot; 12 June<span class="group-total">&#8722;&#8358;6,300</span></td></tr>
+                <tr class="tx-clickable" data-cat="feeding" onclick='openDetail({name:"Coffee Republic",meta:"Lekki Phase 1 Branch",amount:"\u2212\u20A64,500",amountClass:"",date:"Today, 8:42 AM",category:"feeding",account:"GTBank \u2022\u2022\u2022\u2022 4521",auto:true,recurring:false})'>
+                  <td>Today, 8:42 AM</td>
+                  <td><div class="tx-merchant"><div class="tx-icon" style="background:rgba(255,184,77,0.12); color:var(--cat-feeding);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/></svg></div>Coffee Republic</div></td>
+                  <td><span class="cat-tag"><span class="cat-dot" style="background:var(--cat-feeding);"></span>Feeding</span></td>
+                  <td>GTBank &#8226;&#8226;&#8226;&#8226; 4521</td>
+                  <td class="amount-cell">&#8722;&#8358;4,500</td>
+                </tr>
+                <tr class="tx-clickable" data-cat="transport" onclick='openDetail({name:"Uber Trip",meta:"Lekki to Victoria Island",amount:"\u2212\u20A61,800",amountClass:"",date:"Today, 7:58 AM",category:"transport",account:"GTBank \u2022\u2022\u2022\u2022 4521",auto:true,recurring:false})'>
+                  <td>Today, 7:58 AM</td>
+                  <td><div class="tx-merchant"><div class="tx-icon" style="background:rgba(0,212,212,0.12); color:var(--cat-transport);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M5 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM19 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5 13l1.5-5h11L19 13"/></svg></div>Uber Trip</div></td>
+                  <td><span class="cat-tag"><span class="cat-dot" style="background:var(--cat-transport);"></span>Transport</span></td>
+                  <td>GTBank &#8226;&#8226;&#8226;&#8226; 4521</td>
+                  <td class="amount-cell">&#8722;&#8358;1,800</td>
+                </tr>
+
+                <tr class="group-row"><td colspan="5">Yesterday &middot; 11 June<span class="group-total income">+&#8358;425,600</span></td></tr>
+                <tr class="tx-clickable" data-cat="income" onclick='openDetail({name:"Salary \u2014 TechNova Ltd",meta:"Monthly salary deposit",amount:"+\u20A6450,000",amountClass:"income",date:"Yesterday, 9:00 AM",category:"income",account:"GTBank \u2022\u2022\u2022\u2022 4521",auto:true,recurring:true})'>
+                  <td>Yesterday, 9:00 AM</td>
+                  <td><div class="tx-merchant"><div class="tx-icon" style="background:rgba(52,211,153,0.12); color:var(--cat-income);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>Salary &#8212; TechNova Ltd<span class="recur-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span></div></td>
+                  <td><span class="cat-tag"><span class="cat-dot" style="background:var(--cat-income);"></span>Income</span></td>
+                  <td>GTBank &#8226;&#8226;&#8226;&#8226; 4521</td>
+                  <td class="amount-cell income">+&#8358;450,000</td>
+                </tr>
+                <tr class="tx-clickable" data-cat="gifts" onclick='openDetail({name:"Mum \u2014 Family Support",meta:"Transfer via GTBank",amount:"\u2212\u20A620,000",amountClass:"",date:"Yesterday, 6:30 PM",category:"gifts",account:"GTBank \u2022\u2022\u2022\u2022 4521",auto:true,recurring:false})'>
+                  <td>Yesterday, 6:30 PM</td>
+                  <td><div class="tx-merchant"><div class="tx-icon" style="background:rgba(255,107,107,0.12); color:var(--cat-gifts);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/></svg></div>Mum &#8212; Family Support</div></td>
+                  <td><span class="cat-tag"><span class="cat-dot" style="background:var(--cat-gifts);"></span>Gifts &amp; Family</span></td>
+                  <td>GTBank &#8226;&#8226;&#8226;&#8226; 4521</td>
+                  <td class="amount-cell">&#8722;&#8358;20,000</td>
+                </tr>
+                <tr class="tx-clickable" data-cat="other" onclick='openDetail({name:"Netflix",meta:"Standard plan subscription",amount:"\u2212\u20A64,400",amountClass:"",date:"Yesterday, 11:00 PM",category:"other",account:"GTBank \u2022\u2022\u2022\u2022 4521",auto:true,recurring:true})'>
+                  <td>Yesterday, 11:00 PM</td>
+                  <td><div class="tx-merchant"><div class="tx-icon" style="background:rgba(138,143,152,0.15); color:var(--cat-other);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>Netflix<span class="recur-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span></div></td>
+                  <td><span class="cat-tag"><span class="cat-dot" style="background:var(--cat-other);"></span>Other</span></td>
+                  <td>GTBank &#8226;&#8226;&#8226;&#8226; 4521</td>
+                  <td class="amount-cell">&#8722;&#8358;4,400</td>
+                </tr>
+
+                <tr class="group-row"><td colspan="5">This Week<span class="group-total">&#8722;&#8358;60,000</span></td></tr>
+                <tr class="tx-clickable" data-cat="feeding" onclick='openDetail({name:"Shoprite",meta:"Lekki Mall",amount:"\u2212\u20A615,200",amountClass:"",date:"Monday, 6:10 PM",category:"feeding",account:"Access Bank \u2022\u2022\u2022\u2022 0192",auto:true,recurring:false})'>
+                  <td>Monday, 6:10 PM</td>
+                  <td><div class="tx-merchant"><div class="tx-icon" style="background:rgba(255,184,77,0.12); color:var(--cat-feeding);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/></svg></div>Shoprite</div></td>
+                  <td><span class="cat-tag"><span class="cat-dot" style="background:var(--cat-feeding);"></span>Feeding</span></td>
+                  <td>Access Bank &#8226;&#8226;&#8226;&#8226; 0192</td>
+                  <td class="amount-cell">&#8722;&#8358;15,200</td>
+                </tr>
+                <tr class="tx-clickable" data-cat="utilities" onclick='openDetail({name:"DSTV Subscription",meta:"Compact Plus Bouquet",amount:"\u2212\u20A624,500",amountClass:"",date:"Monday, 9:15 AM",category:"utilities",account:"GTBank \u2022\u2022\u2022\u2022 4521",auto:true,recurring:true})'>
+                  <td>Monday, 9:15 AM</td>
+                  <td><div class="tx-merchant"><div class="tx-icon" style="background:rgba(61,127,255,0.12); color:var(--cat-utilities);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>DSTV Subscription<span class="recur-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span></div></td>
+                  <td><span class="cat-tag"><span class="cat-dot" style="background:var(--cat-utilities);"></span>Utilities</span></td>
+                  <td>GTBank &#8226;&#8226;&#8226;&#8226; 4521</td>
+                  <td class="amount-cell">&#8722;&#8358;24,500</td>
+                </tr>
+                <tr class="tx-clickable" data-cat="transport" onclick='openDetail({name:"Bolt",meta:"Ikoyi to Lekki",amount:"\u2212\u20A62,300",amountClass:"",date:"Sunday, 4:20 PM",category:"transport",account:"GTBank \u2022\u2022\u2022\u2022 4521",auto:true,recurring:false})'>
+                  <td>Sunday, 4:20 PM</td>
+                  <td><div class="tx-merchant"><div class="tx-icon" style="background:rgba(0,212,212,0.12); color:var(--cat-transport);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M5 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM19 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5 13l1.5-5h11L19 13"/></svg></div>Bolt</div></td>
+                  <td><span class="cat-tag"><span class="cat-dot" style="background:var(--cat-transport);"></span>Transport</span></td>
+                  <td>GTBank &#8226;&#8226;&#8226;&#8226; 4521</td>
+                  <td class="amount-cell">&#8722;&#8358;2,300</td>
+                </tr>
+                <tr class="tx-clickable" data-cat="utilities" onclick='openDetail({name:"Electricity (EKEDC)",meta:"Prepaid token purchase",amount:"\u2212\u20A618,000",amountClass:"",date:"Sunday, 11:05 AM",category:"utilities",account:"Access Bank \u2022\u2022\u2022\u2022 0192",auto:true,recurring:true})'>
+                  <td>Sunday, 11:05 AM</td>
+                  <td><div class="tx-merchant"><div class="tx-icon" style="background:rgba(61,127,255,0.12); color:var(--cat-utilities);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg></div>Electricity (EKEDC)<span class="recur-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span></div></td>
+                  <td><span class="cat-tag"><span class="cat-dot" style="background:var(--cat-utilities);"></span>Utilities</span></td>
+                  <td>Access Bank &#8226;&#8226;&#8226;&#8226; 0192</td>
+                  <td class="amount-cell">&#8722;&#8358;18,000</td>
+                </tr>
+
+                <tr class="group-row"><td colspan="5">Earlier This Month<span class="group-total">&#8722;&#8358;120,000</span></td></tr>
+                <tr class="tx-clickable" data-cat="rent" onclick='openDetail({name:"Rent Payment",meta:"Lekki Apartment \u2014 Annual",amount:"\u2212\u20A660,000",amountClass:"",date:"3 Jun, 10:00 AM",category:"rent",account:"GTBank \u2022\u2022\u2022\u2022 4521",auto:true,recurring:true})'>
+                  <td>3 Jun, 10:00 AM</td>
+                  <td><div class="tx-merchant"><div class="tx-icon" style="background:rgba(155,126,222,0.12); color:var(--cat-rent);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 2l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg></div>Rent Payment<span class="recur-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span></div></td>
+                  <td><span class="cat-tag"><span class="cat-dot" style="background:var(--cat-rent);"></span>Rent</span></td>
+                  <td>GTBank &#8226;&#8226;&#8226;&#8226; 4521</td>
+                  <td class="amount-cell">&#8722;&#8358;60,000</td>
+                </tr>
+                <tr class="tx-clickable" data-cat="other" onclick='openDetail({name:"Jumia Order #88213",meta:"Electronics \u2014 Wireless earbuds",amount:"\u2212\u20A632,000",amountClass:"",date:"2 Jun, 3:45 PM",category:"other",account:"Access Bank \u2022\u2022\u2022\u2022 0192",auto:true,recurring:false})'>
+                  <td>2 Jun, 3:45 PM</td>
+                  <td><div class="tx-merchant"><div class="tx-icon" style="background:rgba(138,143,152,0.15); color:var(--cat-other);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>Jumia Order #88213</div></td>
+                  <td><span class="cat-tag"><span class="cat-dot" style="background:var(--cat-other);"></span>Other</span></td>
+                  <td>Access Bank &#8226;&#8226;&#8226;&#8226; 0192</td>
+                  <td class="amount-cell">&#8722;&#8358;32,000</td>
+                </tr>
+                <tr class="tx-clickable" data-cat="other" onclick='openDetail({name:"FitLife Gym",meta:"Monthly membership",amount:"\u2212\u20A68,000",amountClass:"",date:"1 Jun, 7:00 AM",category:"other",account:"GTBank \u2022\u2022\u2022\u2022 4521",auto:true,recurring:true})'>
+                  <td>1 Jun, 7:00 AM</td>
+                  <td><div class="tx-merchant"><div class="tx-icon" style="background:rgba(138,143,152,0.15); color:var(--cat-other);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m9 9 6 6"/><path d="M18.5 3 21 5.5l-3 3L15.5 6z"/><path d="M3 18.5 5.5 21l3-3L6 15.5z"/></svg></div>FitLife Gym<span class="recur-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span></div></td>
+                  <td><span class="cat-tag"><span class="cat-dot" style="background:var(--cat-other);"></span>Other</span></td>
+                  <td>GTBank &#8226;&#8226;&#8226;&#8226; 4521</td>
+                  <td class="amount-cell">&#8722;&#8358;8,000</td>
+                </tr>
+                <tr class="tx-clickable" data-cat="other" onclick='openDetail({name:"Transfer to Savings",meta:"Internal transfer \u2014 Emergency Fund",amount:"\u2212\u20A620,000",amountClass:"",date:"1 Jun, 7:30 AM",category:"other",account:"GTBank \u2022\u2022\u2022\u2022 4521",auto:true,recurring:true})'>
+                  <td>1 Jun, 7:30 AM</td>
+                  <td><div class="tx-merchant"><div class="tx-icon" style="background:rgba(0,212,212,0.12); color:var(--cat-transport);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>Transfer to Savings<span class="recur-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span></div></td>
+                  <td><span class="cat-tag"><span class="cat-dot" style="background:var(--cat-other);"></span>Other</span></td>
+                  <td>GTBank &#8226;&#8226;&#8226;&#8226; 4521</td>
+                  <td class="amount-cell">&#8722;&#8358;20,000</td>
+                </tr>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right panel -->
+      <div class="right-panel">
+
+        <!-- Summary panel (default) -->
+        <div id="panelSummary">
+          <div class="panel-section">
+            <div class="panel-title">June Summary</div>
+            <div class="summary-stat"><span class="detail-row-label">Total Income</span><span class="val income">+&#8358;450,000</span></div>
+            <div class="summary-stat"><span class="detail-row-label">Total Expenses</span><span class="val">&#8722;&#8358;164,900</span></div>
+            <div class="summary-stat"><span class="detail-row-label">Net</span><span class="val income">+&#8358;285,100</span></div>
+            <div class="summary-stat"><span class="detail-row-label">Transactions</span><span class="val">14</span></div>
+          </div>
+
+          <div class="panel-section">
+            <div class="panel-title">Top Categories</div>
+            <div class="summary-stat"><span class="detail-row-label"><span class="cat-dot" style="background:var(--cat-rent); margin-right:8px;"></span>Rent</span><span class="val">&#8358;60,000</span></div>
+            <div class="summary-stat"><span class="detail-row-label"><span class="cat-dot" style="background:var(--cat-feeding); margin-right:8px;"></span>Feeding</span><span class="val">&#8358;53,400</span></div>
+            <div class="summary-stat"><span class="detail-row-label"><span class="cat-dot" style="background:var(--cat-utilities); margin-right:8px;"></span>Utilities</span><span class="val">&#8358;42,500</span></div>
+            <div class="summary-stat"><span class="detail-row-label"><span class="cat-dot" style="background:var(--cat-other); margin-right:8px;"></span>Other</span><span class="val">&#8358;64,400</span></div>
+            <div class="summary-stat"><span class="detail-row-label"><span class="cat-dot" style="background:var(--cat-transport); margin-right:8px;"></span>Transport</span><span class="val">&#8358;4,100</span></div>
+            <div class="summary-stat"><span class="detail-row-label"><span class="cat-dot" style="background:var(--cat-gifts); margin-right:8px;"></span>Gifts &amp; Family</span><span class="val">&#8358;20,000</span></div>
+          </div>
+
+          <div class="panel-section">
+            <div class="ai-card">
+              <div class="ai-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3"/><path d="M12 2a5 5 0 0 1 5 5v3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/></svg></div>
+              <div>
+                <div class="ai-text">Click any transaction to view details or recategorize it &#8212; Zinkro learns from your corrections.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transaction Detail panel (hidden by default) -->
+        <div id="panelDetail" style="display:none;">
+          <div class="back-link" onclick="closeDetail()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            Back to Summary
+          </div>
+
+          <div class="detail-head">
+            <div class="detail-icon" id="dIcon"></div>
+            <div class="detail-amount" id="dAmount"></div>
+            <div class="detail-merchant" id="dMerchant"></div>
+          </div>
+
+          <div id="dBadgeWrap" class="panel-section" style="text-align:center;">
+            <span class="ai-badge" id="dBadge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3"/><path d="M12 2a5 5 0 0 1 5 5v3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/></svg>
+              Auto-categorized by Zinkro AI
+            </span>
+          </div>
+
+          <div class="panel-section">
+            <div class="panel-title">Category</div>
+            <div class="cat-picker small" id="catPicker">
+              <div class="cat-pick" data-cat="feeding" onclick="pickCategory(this,'feeding')">
+                <div class="cat-pick-icon" style="background:rgba(255,184,77,0.12); color:var(--cat-feeding);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/></svg></div>
+                <div class="cat-pick-label">Feeding</div>
+              </div>
+              <div class="cat-pick" data-cat="transport" onclick="pickCategory(this,'transport')">
+                <div class="cat-pick-icon" style="background:rgba(0,212,212,0.12); color:var(--cat-transport);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M5 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM19 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5 13l1.5-5h11L19 13"/></svg></div>
+                <div class="cat-pick-label">Transport</div>
+              </div>
+              <div class="cat-pick" data-cat="utilities" onclick="pickCategory(this,'utilities')">
+                <div class="cat-pick-icon" style="background:rgba(61,127,255,0.12); color:var(--cat-utilities);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg></div>
+                <div class="cat-pick-label">Utilities</div>
+              </div>
+              <div class="cat-pick" data-cat="gifts" onclick="pickCategory(this,'gifts')">
+                <div class="cat-pick-icon" style="background:rgba(255,107,107,0.12); color:var(--cat-gifts);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/></svg></div>
+                <div class="cat-pick-label">Gifts</div>
+              </div>
+              <div class="cat-pick" data-cat="rent" onclick="pickCategory(this,'rent')">
+                <div class="cat-pick-icon" style="background:rgba(155,126,222,0.12); color:var(--cat-rent);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 2l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg></div>
+                <div class="cat-pick-label">Rent</div>
+              </div>
+              <div class="cat-pick" data-cat="other" onclick="pickCategory(this,'other')">
+                <div class="cat-pick-icon" style="background:rgba(138,143,152,0.15); color:var(--cat-other);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg></div>
+                <div class="cat-pick-label">Other</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-section">
+            <div class="panel-title">Details</div>
+            <div class="detail-row"><span class="detail-row-label">Date &amp; Time</span><span id="dDate"></span></div>
+            <div class="detail-row"><span class="detail-row-label">Account</span><span id="dAccount"></span></div>
+            <div class="detail-row"><span class="detail-row-label">Recurring</span><div class="toggle" id="dRecurToggle" onclick="this.classList.toggle('on')"></div></div>
+          </div>
+
+          <div class="panel-section">
+            <div class="panel-title">Note</div>
+            <textarea class="note-field" rows="2" placeholder="Add a note for this transaction..."></textarea>
+            <button class="btn btn-primary" onclick="closeDetail()">Save Changes</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Add Transaction Modal -->
+    <div class="overlay" id="overlay" onclick="if(event.target===this) closeModal()">
+      <div class="modal">
+        <div class="modal-head">
+          <h2>Add Transaction</h2>
+          <div class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+        </div>
+
+        <label class="field-label">Category</label>
+        <div class="cat-picker">
+          <div class="cat-pick active"><div class="cat-pick-icon" style="background:rgba(255,184,77,0.12); color:var(--cat-feeding);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/></svg></div><div class="cat-pick-label">Feeding</div></div>
+          <div class="cat-pick"><div class="cat-pick-icon" style="background:rgba(0,212,212,0.12); color:var(--cat-transport);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M5 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM19 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5 13l1.5-5h11L19 13"/></svg></div><div class="cat-pick-label">Transport</div></div>
+          <div class="cat-pick"><div class="cat-pick-icon" style="background:rgba(61,127,255,0.12); color:var(--cat-utilities);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg></div><div class="cat-pick-label">Utilities</div></div>
+          <div class="cat-pick"><div class="cat-pick-icon" style="background:rgba(255,107,107,0.12); color:var(--cat-gifts);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/></svg></div><div class="cat-pick-label">Gifts</div></div>
+          <div class="cat-pick"><div class="cat-pick-icon" style="background:rgba(155,126,222,0.12); color:var(--cat-rent);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 2l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg></div><div class="cat-pick-label">Rent</div></div>
+          <div class="cat-pick"><div class="cat-pick-icon" style="background:rgba(138,143,152,0.15); color:var(--cat-other);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg></div><div class="cat-pick-label">Other</div></div>
+        </div>
+
+        <div class="field-row">
+          <div style="flex:1;">
+            <label class="field-label">Amount</label>
+            <input class="field" placeholder="&#8358;0.00">
+          </div>
+          <div style="flex:1;">
+            <label class="field-label">Date</label>
+            <input class="field" value="12 Jun 2026">
+          </div>
+        </div>
+
+        <label class="field-label">Merchant / Description</label>
+        <input class="field" placeholder="e.g. Coffee Republic">
+
+        <label class="field-label">Account</label>
+        <input class="field" value="GTBank \u2022\u2022\u2022\u2022 4521">
+
+        <label class="field-label">Note (optional)</label>
+        <input class="field" placeholder="Add a note...">
+
+        <button class="btn btn-primary" onclick="closeModal()">Save Transaction</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function openModal(){ document.getElementById('overlay').classList.add('show'); }
+  function closeModal(){ document.getElementById('overlay').classList.remove('show'); }
+
+  document.querySelectorAll('#overlay .cat-picker .cat-pick').forEach(item => {
+    item.addEventListener('click', () => {
+      item.parentElement.querySelectorAll('.cat-pick').forEach(p => p.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+
+  // Segmented control (All / Income / Expenses)
+  document.querySelectorAll('.seg-control').forEach(group => {
+    group.querySelectorAll('.seg').forEach(seg => {
+      seg.addEventListener('click', () => {
+        group.querySelectorAll('.seg').forEach(s => s.classList.remove('active'));
+        seg.classList.add('active');
+      });
+    });
+  });
+
+  // Category filter chips
+  function setCatFilter(el, cat){
+    document.querySelectorAll('.filter-bar .filter-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    const rows = document.querySelectorAll('#txBody tr');
+    let lastGroupVisible = null;
+    rows.forEach(row => {
+      if(row.classList.contains('group-row')){
+        row.style.display = 'none';
+        lastGroupVisible = row;
+        return;
+      }
+      const show = cat === 'all' || row.dataset.cat === cat;
+      row.style.display = show ? '' : 'none';
+      if(show && lastGroupVisible) lastGroupVisible.style.display = '';
+    });
+  }
+
+  // Category icon/colors for detail panel
+  const catColors = { feeding:'var(--cat-feeding)', transport:'var(--cat-transport)', utilities:'var(--cat-utilities)', gifts:'var(--cat-gifts)', rent:'var(--cat-rent)', other:'var(--cat-other)', income:'var(--cat-income)' };
+  const catBg = { feeding:'rgba(255,184,77,0.12)', transport:'rgba(0,212,212,0.12)', utilities:'rgba(61,127,255,0.12)', gifts:'rgba(255,107,107,0.12)', rent:'rgba(155,126,222,0.12)', other:'rgba(138,143,152,0.15)', income:'rgba(52,211,153,0.12)' };
+  const catIcons = {
+    feeding:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/></svg>',
+    transport:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M5 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM19 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5 13l1.5-5h11L19 13"/></svg>',
+    utilities:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>',
+    gifts:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/></svg>',
+    rent:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 2l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>',
+    other:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>',
+    income:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>'
+  };
+
+  function openDetail(tx){
+    document.getElementById('dIcon').style.background = catBg[tx.category];
+    document.getElementById('dIcon').style.color = catColors[tx.category];
+    document.getElementById('dIcon').innerHTML = catIcons[tx.category];
+    document.getElementById('dAmount').textContent = tx.amount;
+    document.getElementById('dAmount').style.color = tx.amountClass === 'income' ? 'var(--success)' : 'var(--text-primary)';
+    document.getElementById('dMerchant').textContent = tx.name + ' \u2014 ' + tx.meta;
+    document.getElementById('dDate').textContent = tx.date;
+    document.getElementById('dAccount').textContent = tx.account;
+    document.getElementById('dBadgeWrap').style.display = tx.auto ? 'block' : 'none';
+    document.getElementById('dRecurToggle').classList.toggle('on', tx.recurring);
+
+    document.querySelectorAll('#catPicker .cat-pick').forEach(p => {
+      p.classList.toggle('active', p.dataset.cat === tx.category);
+    });
+
+    document.getElementById('panelSummary').style.display = 'none';
+    document.getElementById('panelDetail').style.display = 'block';
+  }
+
+  function closeDetail(){
+    document.getElementById('panelDetail').style.display = 'none';
+    document.getElementById('panelSummary').style.display = 'block';
+  }
+
+  function pickCategory(el, cat){
+    document.querySelectorAll('#catPicker .cat-pick').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('dIcon').style.background = catBg[cat];
+    document.getElementById('dIcon').style.color = catColors[cat];
+    document.getElementById('dIcon').innerHTML = catIcons[cat];
+    document.getElementById('dBadgeWrap').style.display = 'block';
+    document.getElementById('dBadge').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Category updated';
+  }
+</script>
+</body>
+</html>
