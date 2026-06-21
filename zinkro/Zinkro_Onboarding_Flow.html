@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zinkro — Onboarding Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-canvas:#0F1115;
+    --bg-surface:#181B22;
+    --bg-surface-2:#20242E;
+    --border:#2A2E37;
+    --text-primary:#F5F6FA;
+    --text-secondary:#8A8F98;
+    --accent:#3D7FFF;
+    --accent-2:#00D4D4;
+    --success:#34D399;
+    --error:#FF6B6B;
+    --warning:#FFB84D;
+    --gradient: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:28px;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  body{
+    font-family:'Inter', sans-serif;
+    background:#E7E9EE;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 16px;
+    color:var(--text-primary);
+  }
+  h1,h2,h3,.font-display{ font-family:'Sora', sans-serif; }
+
+  /* ---------- Outer layout ---------- */
+  .stage{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:18px;
+  }
+  .stage-header{
+    text-align:center;
+  }
+  .stage-header .eyebrow{
+    font-family:'Inter',sans-serif;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:3px;
+    color:#9098A6;
+    text-transform:uppercase;
+  }
+  .stage-header h1{
+    font-size:20px;
+    font-weight:700;
+    color:#0F1115;
+    margin-top:4px;
+  }
+  .stage-row{
+    display:flex;
+    align-items:center;
+    gap:18px;
+  }
+  .nav-arrow{
+    width:44px; height:44px;
+    border-radius:50%;
+    border:1.5px solid #C9CDD6;
+    background:#FFFFFF;
+    color:#3D3F46;
+    font-size:18px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:all .15s ease;
+    flex-shrink:0;
+  }
+  .nav-arrow:hover{ border-color:var(--accent); color:var(--accent); }
+  .nav-arrow:disabled{ opacity:.3; cursor:default; }
+  .nav-arrow:disabled:hover{ border-color:#C9CDD6; color:#3D3F46; }
+
+  /* ---------- Phone frame ---------- */
+  .phone{
+    width:375px;
+    height:780px;
+    background:var(--bg-canvas);
+    border-radius:44px;
+    border:10px solid #05060A;
+    box-shadow:0 30px 60px -20px rgba(15,17,21,0.45), 0 0 0 1px rgba(255,255,255,0.04);
+    overflow:hidden;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+  }
+  .island{
+    position:absolute;
+    top:10px; left:50%; transform:translateX(-50%);
+    width:100px; height:26px;
+    background:#000; border-radius:14px;
+    z-index:50;
+  }
+  .status-bar{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:16px 28px 6px;
+    font-size:13px; font-weight:600; color:var(--text-primary);
+    flex-shrink:0;
+  }
+  .status-icons{ display:flex; gap:5px; align-items:center; }
+
+  /* ---------- Screen viewport ---------- */
+  .viewport{
+    flex:1;
+    overflow:hidden;
+    position:relative;
+  }
+  .screens{
+    display:flex;
+    height:100%;
+    width:1200%; /* 12 screens */
+    transition: transform .45s cubic-bezier(.65,0,.35,1);
+  }
+  .screen{
+    width:8.3333%;
+    height:100%;
+    overflow-y:auto;
+    padding:20px 24px 12px;
+    display:flex;
+    flex-direction:column;
+    scrollbar-width:none;
+  }
+  .screen::-webkit-scrollbar{ display:none; }
+
+  /* ---------- Bottom bar ---------- */
+  .bottom-bar{
+    flex-shrink:0;
+    padding:14px 24px 22px;
+    border-top:1px solid var(--border);
+    background:var(--bg-canvas);
+  }
+  .progress-track{
+    height:3px; background:var(--border); border-radius:2px; overflow:hidden; margin-bottom:14px;
+  }
+  .progress-fill{
+    height:100%; background:var(--gradient); border-radius:2px; transition:width .4s ease;
+  }
+  .btn{
+    width:100%;
+    border:none;
+    border-radius:var(--r-md);
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    padding:15px;
+    cursor:pointer;
+    text-align:center;
+    transition:transform .08s ease, opacity .15s ease;
+  }
+  .btn:active{ transform:scale(0.98); }
+  .btn-primary{ background:var(--gradient); color:#06141F; }
+  .btn-secondary{ background:transparent; color:var(--text-secondary); margin-top:10px; font-weight:500; font-size:14px; cursor:pointer; }
+  .btn-secondary:hover{ color:var(--text-primary); }
+  .btn-outline{ background:var(--bg-surface); border:1px solid var(--border); color:var(--text-primary); display:flex; align-items:center; justify-content:center; gap:10px; }
+
+  /* ---------- Reusable bits ---------- */
+  .icon-circle{
+    width:64px; height:64px; border-radius:50%;
+    background:var(--gradient);
+    display:flex; align-items:center; justify-content:center;
+    color:#06141F;
+    flex-shrink:0;
+  }
+  .icon-circle.lg{ width:88px; height:88px; }
+  .icon-circle svg{ width:30px; height:30px; }
+  .icon-circle.lg svg{ width:42px; height:42px; }
+  .pill{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:4px 10px; border-radius:999px;
+    font-size:11px; font-weight:700; letter-spacing:.5px; text-transform:uppercase;
+  }
+  .pill-required{ background:rgba(255,107,107,0.12); color:var(--error); }
+  .pill-optional{ background:rgba(138,143,152,0.15); color:var(--text-secondary); }
+  .pill-recommended{ background:rgba(0,212,212,0.12); color:var(--accent-2); }
+  .card{
+    background:var(--bg-surface);
+    border:1px solid var(--border);
+    border-radius:var(--r-lg);
+    padding:16px;
+  }
+  .field-label{ font-size:13px; color:var(--text-secondary); margin-bottom:6px; display:block; font-weight:500; }
+  .field{
+    width:100%;
+    background:var(--bg-surface);
+    border:1.5px solid var(--border);
+    border-radius:var(--r-md);
+    padding:13px 14px;
+    color:var(--text-primary);
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    margin-bottom:16px;
+    outline:none;
+    transition:border-color .15s ease;
+  }
+  .field:focus{ border-color:var(--accent); }
+  .field::placeholder{ color:#5F6772; }
+
+  /* ---------- Splash ---------- */
+  .splash{ align-items:center; justify-content:center; text-align:center; gap:16px; flex:1; }
+  .splash-logo{
+    width:96px; height:96px; border-radius:28px;
+    background:var(--bg-surface);
+    border:2px solid transparent;
+    background-image: linear-gradient(var(--bg-surface), var(--bg-surface)), var(--gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .dots{ display:flex; gap:6px; margin-top:10px; }
+  .dots span{ width:6px; height:6px; border-radius:50%; background:var(--border); animation:pulseDot 1.2s infinite ease-in-out; }
+  .dots span:nth-child(2){ animation-delay:.2s; }
+  .dots span:nth-child(3){ animation-delay:.4s; }
+  @keyframes pulseDot{ 0%,80%,100%{ opacity:.3; transform:scale(0.8);} 40%{ opacity:1; transform:scale(1.1);} }
+
+  /* ---------- Welcome illustration ---------- */
+  .welcome-illustration{
+    height:200px; border-radius:var(--r-xl);
+    background:var(--bg-surface);
+    border:1px solid var(--border);
+    margin:20px 0 24px;
+    position:relative; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .float-card{
+    position:absolute; background:var(--bg-surface-2); border:1px solid var(--border);
+    border-radius:12px; padding:10px 14px; font-size:12px; font-weight:600; color:var(--text-primary);
+    display:flex; align-items:center; gap:8px; box-shadow:0 8px 20px rgba(0,0,0,0.3);
+  }
+  .dot-cat{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+  /* ---------- Tabs ---------- */
+  .tabs{ display:flex; background:var(--bg-surface); border-radius:var(--r-md); padding:4px; margin-bottom:24px; border:1px solid var(--border); }
+  .tab{ flex:1; text-align:center; padding:10px; border-radius:10px; font-weight:600; font-size:14px; cursor:pointer; color:var(--text-secondary); transition:all .15s ease; }
+  .tab.active{ background:var(--gradient); color:#06141F; }
+
+  /* ---------- OTP ---------- */
+  .otp-row{ display:flex; gap:10px; justify-content:space-between; margin:24px 0 8px; }
+  .otp-box{
+    width:46px; height:56px; border-radius:var(--r-md);
+    background:var(--bg-surface); border:1.5px solid var(--border);
+    color:var(--text-primary); font-size:22px; font-weight:700; text-align:center;
+    font-family:'Sora',sans-serif; outline:none; transition:border-color .15s ease;
+  }
+  .otp-box:focus{ border-color:var(--accent); }
+
+  /* ---------- Permission rows ---------- */
+  .perm-row{ display:flex; gap:14px; padding:16px 0; border-bottom:1px solid var(--border); align-items:flex-start; }
+  .perm-row:last-child{ border-bottom:none; }
+  .perm-icon{ width:40px; height:40px; border-radius:12px; background:var(--bg-surface-2); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--accent-2); }
+  .perm-icon svg{ width:20px; height:20px; }
+
+  /* ---------- SMS preview ---------- */
+  .sms-preview{
+    background:var(--bg-surface-2); border:1px solid var(--border); border-radius:var(--r-lg);
+    padding:14px; margin:18px 0;
+  }
+  .sms-sender{ font-size:12px; font-weight:700; color:var(--accent-2); letter-spacing:1px; text-transform:uppercase; margin-bottom:6px; }
+  .sms-body{ font-size:13px; color:var(--text-secondary); line-height:1.6; font-family:'Inter',sans-serif; }
+  .sms-arrow{ display:flex; justify-content:center; margin:8px 0; color:var(--text-secondary); }
+  .result-row{ display:flex; align-items:center; justify-content:space-between; background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--r-md); padding:12px 14px; }
+  .result-left{ display:flex; align-items:center; gap:10px; font-size:13px; font-weight:600; }
+
+  /* ---------- Tutorial illustrations ---------- */
+  .tut-illo{
+    height:220px; border-radius:var(--r-xl); background:var(--bg-surface); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; margin:8px 0 28px; padding:20px;
+  }
+  .budget-bar-row{ width:100%; display:flex; flex-direction:column; gap:14px; }
+  .budget-bar{ display:flex; flex-direction:column; gap:6px; }
+  .budget-bar-track{ height:8px; background:var(--bg-surface-2); border-radius:4px; overflow:hidden; }
+  .budget-bar-fill{ height:100%; border-radius:4px; }
+  .budget-label{ display:flex; justify-content:space-between; font-size:12px; color:var(--text-secondary); }
+  .ai-bubble{ background:var(--bg-surface-2); border:1px solid var(--border); border-radius:16px; padding:14px; font-size:13px; line-height:1.6; }
+
+  /* ---------- Success ---------- */
+  .success-check{
+    width:96px; height:96px; border-radius:50%; background:var(--gradient);
+    display:flex; align-items:center; justify-content:center; margin:0 auto 24px;
+    animation:popIn .5s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn{ from{ transform:scale(0); opacity:0;} to{ transform:scale(1); opacity:1;} }
+  .sync-track{ height:6px; background:var(--bg-surface); border-radius:3px; overflow:hidden; margin:18px 0 6px; border:1px solid var(--border); }
+  .sync-fill{ height:100%; width:72%; background:var(--gradient); border-radius:3px; }
+
+  /* ---------- Generic text helpers ---------- */
+  .eyebrow-onb{ font-size:11px; font-weight:700; letter-spacing:3px; color:var(--accent-2); text-transform:uppercase; margin-bottom:8px; }
+  .h-onb{ font-size:24px; font-weight:700; line-height:1.3; margin-bottom:10px; }
+  .body-onb{ font-size:14px; color:var(--text-secondary); line-height:1.6; }
+  .center-block{ text-align:center; }
+  .grow{ flex:1; }
+  .mt-auto{ margin-top:auto; }
+  .checkbox-row{ display:flex; gap:10px; align-items:flex-start; font-size:12px; color:var(--text-secondary); line-height:1.5; margin-top:4px; }
+  .checkbox-row input{ margin-top:2px; accent-color:var(--accent); }
+  .link{ color:var(--accent-2); font-weight:600; }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="stage-header">
+    <div class="eyebrow">ZINKRO MOBILE — ONBOARDING FLOW</div>
+    <h1 id="screenTitle">Splash Screen</h1>
+  </div>
+
+  <div class="stage-row">
+    <button class="nav-arrow" id="prevBtn" onclick="go(-1)">&#8592;</button>
+
+    <div class="phone">
+      <div class="island"></div>
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <span>&#9679;&#9679;&#9679;</span>
+          <span>&#128225;</span>
+          <span>&#128267;</span>
+        </div>
+      </div>
+
+      <div class="viewport">
+        <div class="screens" id="screens">
+
+          <!-- 0: SPLASH -->
+          <div class="screen splash">
+            <div class="splash-logo">
+              <svg viewBox="0 0 180 180" width="48" height="48">
+                <defs><linearGradient id="gA" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3D7FFF"/><stop offset="100%" stop-color="#00D4D4"/></linearGradient></defs>
+                <g transform="translate(8,30)">
+                  <path d="M30 0 H8 a14 14 0 0 0 -14 14 v48 a14 14 0 0 0 14 14 H30" fill="none" stroke="#F5F6FA" stroke-width="9" stroke-linecap="round"/>
+                  <path d="M74 0 H96 a14 14 0 0 1 14 14 v48 a14 14 0 0 1 -14 14 H74" fill="none" stroke="#F5F6FA" stroke-width="9" stroke-linecap="round"/>
+                  <polyline points="22,52 40,52 50,28 64,68 78,38 92,38" fill="none" stroke="url(#gA)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+                </g>
+              </svg>
+            </div>
+            <div class="font-display" style="font-size:30px; font-weight:800; letter-spacing:1px;">Zinkro</div>
+            <div class="body-onb" style="font-style:italic;">Track it all, automatically.</div>
+            <div class="dots"><span></span><span></span><span></span></div>
+          </div>
+
+          <!-- 1: WELCOME -->
+          <div class="screen">
+            <div class="eyebrow-onb" style="margin-top:8px;">Welcome to Zinkro</div>
+            <h1 class="h-onb">The intelligent operating system for your money.</h1>
+            <p class="body-onb">Zinkro reads the alerts your bank already sends you, sorts every transaction automatically, and shows you exactly where your money goes \u2014 every month, without typing a thing.</p>
+
+            <div class="welcome-illustration">
+              <div class="float-card" style="top:24px; left:20px;"><span class="dot-cat" style="background:#FFB84D;"></span> Feeding &nbsp;\u2212\u20A64,500</div>
+              <div class="float-card" style="top:78px; right:18px;"><span class="dot-cat" style="background:#3D7FFF;"></span> Utilities &nbsp;\u2212\u20A612,000</div>
+              <div class="float-card" style="bottom:28px; left:46px;"><span class="dot-cat" style="background:#00D4D4;"></span> Transport &nbsp;\u2212\u20A61,800</div>
+              <svg width="64" height="64" viewBox="0 0 180 180" style="position:absolute;">
+                <circle cx="90" cy="90" r="80" fill="none" stroke="#2A2E37" stroke-width="2"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- 2: AUTH (SIGN UP / LOG IN) -->
+          <div class="screen">
+            <h1 class="h-onb" style="margin-top:8px;">Create your account</h1>
+            <div class="tabs">
+              <div class="tab active" onclick="setAuthTab(this,0)">Sign Up</div>
+              <div class="tab" onclick="setAuthTab(this,1)">Log In</div>
+            </div>
+
+            <div id="authSignup">
+              <label class="field-label">Full name</label>
+              <input class="field" placeholder="Adetomiwa Bello">
+              <label class="field-label">Phone number</label>
+              <input class="field" placeholder="+234 801 234 5678">
+              <label class="field-label">Email address</label>
+              <input class="field" placeholder="tomi@email.com">
+              <label class="field-label">Password</label>
+              <input class="field" type="password" placeholder="Create a password">
+              <div class="checkbox-row">
+                <input type="checkbox" checked>
+                <span>I agree to Zinkro's <span class="link">Terms of Service</span> and <span class="link">Privacy Policy</span>.</span>
+              </div>
+            </div>
+
+            <div id="authLogin" style="display:none;">
+              <label class="field-label">Phone or email</label>
+              <input class="field" placeholder="tomi@email.com">
+              <label class="field-label">Password</label>
+              <input class="field" type="password" placeholder="Enter your password">
+              <div style="text-align:right; margin-top:-8px;">
+                <span class="link" style="font-size:13px;">Forgot password?</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3: OTP -->
+          <div class="screen">
+            <div class="icon-circle" style="margin-top:12px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#06141F" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 7l9 6 9-6"/></svg>
+            </div>
+            <h1 class="h-onb" style="margin-top:18px;">Verify your number</h1>
+            <p class="body-onb">Enter the 6-digit code sent via SMS to <strong style="color:var(--text-primary);">+234 801 234 5678</strong></p>
+
+            <div class="otp-row">
+              <input class="otp-box" maxlength="1" value="4">
+              <input class="otp-box" maxlength="1" value="2">
+              <input class="otp-box" maxlength="1" value="9">
+              <input class="otp-box" maxlength="1">
+              <input class="otp-box" maxlength="1">
+              <input class="otp-box" maxlength="1">
+            </div>
+            <p class="body-onb" style="font-size:13px;">Didn't get a code? <span class="link">Resend in 0:42</span></p>
+          </div>
+
+          <!-- 4: BIOMETRIC -->
+          <div class="screen center-block" style="align-items:center; justify-content:center; flex:1; gap:0;">
+            <div class="icon-circle lg" style="margin:0 auto 24px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#06141F" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a5 5 0 0 0-5 5v3"/><path d="M12 2a5 5 0 0 1 5 5v3"/>
+                <path d="M5 10v2a7 7 0 0 0 14 0v-2"/>
+                <path d="M9 10v3a3 3 0 0 0 6 0v-3"/>
+                <path d="M12 13v6"/>
+              </svg>
+            </div>
+            <h1 class="h-onb">Set up Face ID</h1>
+            <p class="body-onb">Use Face ID to log in faster and add an extra layer of security to your financial data.</p>
+          </div>
+
+          <!-- 5: PERMISSIONS OVERVIEW -->
+          <div class="screen">
+            <h1 class="h-onb" style="margin-top:8px;">Before we get started</h1>
+            <p class="body-onb">Zinkro needs a few permissions to track your finances automatically. You're always in control, and you can change these anytime in Settings.</p>
+
+            <div style="margin-top:8px;">
+              <div class="perm-row">
+                <div class="perm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+                <div class="grow">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <strong style="font-size:14px;">Bank SMS Alerts</strong>
+                    <span class="pill pill-required">Required</span>
+                  </div>
+                  <div class="body-onb" style="font-size:12px;">Powers automatic transaction tracking</div>
+                </div>
+              </div>
+              <div class="perm-row">
+                <div class="perm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg></div>
+                <div class="grow">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <strong style="font-size:14px;">Email Access</strong>
+                    <span class="pill pill-optional">Optional</span>
+                  </div>
+                  <div class="body-onb" style="font-size:12px;">Catches receipts sent only by email</div>
+                </div>
+              </div>
+              <div class="perm-row">
+                <div class="perm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+                <div class="grow">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <strong style="font-size:14px;">Notifications</strong>
+                    <span class="pill pill-recommended">Recommended</span>
+                  </div>
+                  <div class="body-onb" style="font-size:12px;">Get monthly summaries &amp; AI insights</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6: BANK SMS ACCESS -->
+          <div class="screen">
+            <div class="icon-circle" style="margin-top:8px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#06141F" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <h1 class="h-onb" style="margin-top:16px;">Read your bank alerts</h1>
+            <p class="body-onb">When you spend, your bank sends you a message like this:</p>
+
+            <div class="sms-preview">
+              <div class="sms-sender">GTBank</div>
+              <div class="sms-body">Debit Alert! Amt: NGN 4,500.00 desc: COFFEE REPUBLIC LEKKI Bal: NGN 182,300.00</div>
+            </div>
+            <div class="sms-arrow">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+            </div>
+            <div class="result-row">
+              <div class="result-left"><span class="dot-cat" style="background:#FFB84D;"></span> Coffee Republic \u2014 Feeding</div>
+              <strong style="font-size:13px;">\u2212\u20A64,500</strong>
+            </div>
+
+            <p class="body-onb" style="margin-top:16px; font-size:12px;">Zinkro only reads transaction alerts from banks and payment providers. Personal messages are never accessed, read, or stored.</p>
+          </div>
+
+          <!-- 7: EMAIL ACCESS -->
+          <div class="screen">
+            <div class="icon-circle" style="margin-top:8px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#06141F" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
+            </div>
+            <h1 class="h-onb" style="margin-top:16px;">Connect your email</h1>
+            <p class="body-onb">Some banks send transaction receipts only by email. Connecting your inbox helps Zinkro catch those too \u2014 this step is completely optional.</p>
+
+            <div style="margin-top:20px; display:flex; flex-direction:column; gap:12px;">
+              <button class="btn btn-outline">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#EA4335" d="M5.27 9.76 12 14.5l6.73-4.74L20 8.3l-8-5.6-8 5.6z"/><path fill="#34A853" d="M4 17h16V8.3l-8 5.6-8-5.6z"/></svg>
+                Connect Gmail
+              </button>
+              <button class="btn btn-outline">
+                <svg width="18" height="18" viewBox="0 0 24 24"><rect width="24" height="24" rx="4" fill="#0A2767"/><path fill="#fff" d="M4 7h16v10H4z" opacity=".15"/><path fill="#28A8EA" d="M14 7h6v4h-6z"/><path fill="#0078D4" d="M14 13h6v4h-6z"/><path fill="#fff" d="M5 8h7v8H5z" opacity=".9"/></svg>
+                Connect Outlook
+              </button>
+            </div>
+            <p class="body-onb" style="margin-top:18px; font-size:12px;">Zinkro only scans for transaction receipts. We never read, store, or share personal emails.</p>
+          </div>
+
+          <!-- 8: TUTORIAL 1 -->
+          <div class="screen">
+            <div class="tut-illo">
+              <div style="width:100%;">
+                <div class="sms-preview" style="margin:0 0 10px;">
+                  <div class="sms-sender">Access Bank</div>
+                  <div class="sms-body" style="font-size:12px;">Debit: NGN 1,800.00 to UBER TRIP \u2014 Bal NGN 96,400.00</div>
+                </div>
+                <div class="sms-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+                <div class="result-row">
+                  <div class="result-left"><span class="dot-cat" style="background:#00D4D4;"></span> Uber Trip \u2014 Transport</div>
+                  <strong style="font-size:13px;">\u2212\u20A61,800</strong>
+                </div>
+              </div>
+            </div>
+            <div class="eyebrow-onb">01 \u2014 Automatic Capture</div>
+            <h1 class="h-onb">We read the alerts you already get</h1>
+            <p class="body-onb">Every debit and credit alert from your bank is automatically captured and sorted into categories \u2014 feeding, transport, utilities, and more. No typing, ever.</p>
+          </div>
+
+          <!-- 9: TUTORIAL 2 -->
+          <div class="screen">
+            <div class="tut-illo">
+              <div class="budget-bar-row">
+                <div class="budget-bar">
+                  <div class="budget-label"><span>Feeding</span><span>\u20A638,200 / \u20A645,000</span></div>
+                  <div class="budget-bar-track"><div class="budget-bar-fill" style="width:85%; background:#FFB84D;"></div></div>
+                </div>
+                <div class="budget-bar">
+                  <div class="budget-label"><span>Transport</span><span>\u20A612,400 / \u20A620,000</span></div>
+                  <div class="budget-bar-track"><div class="budget-bar-fill" style="width:62%; background:#00D4D4;"></div></div>
+                </div>
+                <div class="budget-bar">
+                  <div class="budget-label"><span>Utilities</span><span>\u20A622,000 / \u20A618,000</span></div>
+                  <div class="budget-bar-track"><div class="budget-bar-fill" style="width:100%; background:#FF6B6B;"></div></div>
+                </div>
+              </div>
+            </div>
+            <div class="eyebrow-onb">02 \u2014 Smart Budgets</div>
+            <h1 class="h-onb">Budgets that build themselves</h1>
+            <p class="body-onb">Zinkro learns your spending patterns and suggests realistic budgets for each category \u2014 then tracks your progress automatically, every day.</p>
+          </div>
+
+          <!-- 10: TUTORIAL 3 -->
+          <div class="screen">
+            <div class="tut-illo">
+              <div style="width:100%; display:flex; flex-direction:column; gap:10px;">
+                <div style="display:flex; gap:10px; align-items:flex-start;">
+                  <div class="icon-circle" style="width:36px; height:36px; flex-shrink:0;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#06141F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3"/><path d="M12 2a5 5 0 0 1 5 5v3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/></svg>
+                  </div>
+                  <div class="ai-bubble" style="flex:1;">You spent 18% less on Transport this month \u2014 mostly by using the BRT more. Want me to move that \u20A63,600 into your Lagos Trip goal?</div>
+                </div>
+                <div style="display:flex; gap:8px; padding-left:46px;">
+                  <span class="pill" style="background:rgba(61,127,255,0.12); color:var(--accent);">Yes, move it</span>
+                  <span class="pill pill-optional">Not now</span>
+                </div>
+              </div>
+            </div>
+            <div class="eyebrow-onb">03 \u2014 AI Financial Coach</div>
+            <h1 class="h-onb">Your AI financial coach</h1>
+            <p class="body-onb">Ask Zinkro anything about your money, get a weekly review every Sunday, and receive smart suggestions to help you save more \u2014 automatically.</p>
+          </div>
+
+          <!-- 11: SUCCESS -->
+          <div class="screen center-block" style="align-items:center; justify-content:center; flex:1; gap:0;">
+            <div class="success-check">
+              <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#06141F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+            <h1 class="h-onb">You're all set, Tomi!</h1>
+            <p class="body-onb">Zinkro found 3 connected accounts and is syncing your last 30 days of transactions.</p>
+            <div class="sync-track"><div class="sync-fill"></div></div>
+            <p class="body-onb" style="font-size:12px;">Syncing transactions \u2014 72%</p>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="bottom-bar">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <button class="btn btn-primary" id="primaryBtn" onclick="go(1)"></button>
+        <div class="btn btn-secondary" id="secondaryBtn" onclick=""></div>
+      </div>
+    </div>
+
+    <button class="nav-arrow" id="nextBtn" onclick="go(1)">&#8594;</button>
+  </div>
+</div>
+
+<script>
+  const TOTAL = 12;
+  let current = 0;
+
+  const titles = [
+    "Splash Screen","Welcome","Sign Up / Log In","OTP Verification","Biometric Setup",
+    "Permissions Overview","Bank SMS Alert Access","Email Access (Optional)",
+    "Tutorial \u2014 Automatic Capture","Tutorial \u2014 Smart Budgets","Tutorial \u2014 AI Coach","Success"
+  ];
+  const primary = [
+    "Get Started","Create Account","Continue","Verify","Enable Face ID",
+    "Continue","Allow SMS Access","Connect Email","Next","Next","Get Started","Go to Dashboard"
+  ];
+  const secondary = [
+    null,"I already have an account",null,"Resend code","Maybe later",
+    null,"Not now","Skip for now",null,null,null,null
+  ];
+  // progress shown only for steps 1-7 (account setup + permissions)
+  const progress = [0, 0.10, 0.25, 0.40, 0.55, 0.65, 0.80, 0.95, 1, 1, 1, 1];
+
+  function render(){
+    document.getElementById('screens').style.transform = `translateX(-${current * (100/TOTAL)}%)`;
+    document.getElementById('screenTitle').textContent = titles[current];
+    document.getElementById('primaryBtn').textContent = primary[current];
+
+    const sec = document.getElementById('secondaryBtn');
+    if(secondary[current]){
+      sec.style.display = 'block';
+      sec.textContent = secondary[current];
+    } else {
+      sec.style.display = 'none';
+    }
+
+    document.getElementById('progressFill').style.width = (progress[current]*100) + '%';
+    document.getElementById('prevBtn').disabled = current === 0;
+    document.getElementById('nextBtn').disabled = current === TOTAL-1;
+  }
+
+  function go(dir){
+    const next = current + dir;
+    if(next < 0 || next >= TOTAL) return;
+    current = next;
+    render();
+  }
+
+  function setAuthTab(el, idx){
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('authSignup').style.display = idx === 0 ? 'block' : 'none';
+    document.getElementById('authLogin').style.display = idx === 1 ? 'block' : 'none';
+  }
+
+  // OTP auto-advance
+  document.querySelectorAll('.otp-box').forEach((box, i, arr) => {
+    box.addEventListener('input', () => {
+      if(box.value && i < arr.length-1) arr[i+1].focus();
+    });
+    box.addEventListener('keydown', (e) => {
+      if(e.key === 'Backspace' && !box.value && i > 0) arr[i-1].focus();
+    });
+  });
+
+  render();
+</script>
+</body>
+</html>
