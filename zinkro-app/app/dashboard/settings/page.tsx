@@ -1,17 +1,43 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DEMO_ACCOUNTS, DEMO_USER } from '@/lib/demo-store'
 import { formatCurrency } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
   User, Link2, CreditCard, Share2, Moon, Shield,
-  CheckCircle2, ChevronRight, Crown
+  CheckCircle2, Crown, Check, Copy
 } from 'lucide-react'
 
 export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(true)
   const [faceId, setFaceId] = useState(true)
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    const savedDark = localStorage.getItem('zinkro-dark-mode')
+    if (savedDark !== null) setDarkMode(savedDark === 'true')
+    const savedFaceId = localStorage.getItem('zinkro-face-id')
+    if (savedFaceId !== null) setFaceId(savedFaceId === 'true')
+  }, [])
+
+  function toggleDarkMode() {
+    const next = !darkMode
+    setDarkMode(next)
+    localStorage.setItem('zinkro-dark-mode', String(next))
+  }
+
+  function toggleFaceId() {
+    const next = !faceId
+    setFaceId(next)
+    localStorage.setItem('zinkro-face-id', String(next))
+  }
+
+  async function copyReferralCode() {
+    await navigator.clipboard.writeText(DEMO_USER.referralCode)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   return (
     <div className="p-6 max-w-[900px] mx-auto">
@@ -140,8 +166,12 @@ export default function SettingsPage() {
                 <div className="flex-1 bg-surface2 rounded-md px-4 py-2.5 font-mono text-sm text-accent font-semibold">
                   {DEMO_USER.referralCode}
                 </div>
-                <button className="px-4 py-2.5 gradient-bg text-white text-sm font-medium rounded-md hover:opacity-90 transition-opacity">
-                  Copy
+                <button
+                  onClick={copyReferralCode}
+                  className="flex items-center gap-1.5 px-4 py-2.5 gradient-bg text-white text-sm font-medium rounded-md hover:opacity-90 transition-opacity"
+                >
+                  {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copied ? 'Copied!' : 'Copy'}
                 </button>
               </div>
             </CardContent>
@@ -160,7 +190,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <button
-                  onClick={() => setDarkMode(!darkMode)}
+                  onClick={toggleDarkMode}
                   className={`w-10 h-6 rounded-full flex items-center transition-colors ${darkMode ? 'bg-success' : 'bg-border'}`}
                 >
                   <div className={`w-4 h-4 rounded-full bg-white shadow mx-1 transition-transform ${darkMode ? 'translate-x-4' : ''}`} />
@@ -175,7 +205,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <button
-                  onClick={() => setFaceId(!faceId)}
+                  onClick={toggleFaceId}
                   className={`w-10 h-6 rounded-full flex items-center transition-colors ${faceId ? 'bg-success' : 'bg-border'}`}
                 >
                   <div className={`w-4 h-4 rounded-full bg-white shadow mx-1 transition-transform ${faceId ? 'translate-x-4' : ''}`} />

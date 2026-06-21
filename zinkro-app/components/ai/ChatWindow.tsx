@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react'
 import { Bot, User, Send, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -8,6 +8,10 @@ interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
+}
+
+export interface ChatWindowHandle {
+  submitMessage: (text: string) => void
 }
 
 const INITIAL_MESSAGES: Message[] = [
@@ -26,13 +30,17 @@ const PROMPT_CHIPS = [
   'What\'s my savings rate?',
 ]
 
-export function ChatWindow() {
+export const ChatWindow = forwardRef<ChatWindowHandle>(function ChatWindow(_, ref) {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES)
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const [apiKeyMissing, setApiKeyMissing] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useImperativeHandle(ref, () => ({
+    submitMessage: (text: string) => sendMessage(text),
+  }))
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -184,4 +192,4 @@ export function ChatWindow() {
       </div>
     </div>
   )
-}
+})
