@@ -1,0 +1,87 @@
+import { ChatWindow } from '@/components/ai/ChatWindow'
+import { Bot, TrendingUp, AlertCircle, BarChart3 } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+
+const QUICK_ACTIONS = [
+  { icon: TrendingUp, label: 'Weekly Review', color: '#3D7FFF' },
+  { icon: AlertCircle, label: 'Anomaly Alerts', color: '#FF6B6B' },
+  { icon: BarChart3, label: 'Health Score', color: '#34D399' },
+]
+
+export default function AiPage() {
+  return (
+    <div className="p-6 max-w-[1200px] mx-auto">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center">
+          <Bot className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-display font-bold text-primary">Zinkro AI</h1>
+          <p className="text-secondary text-sm">Your personal finance coach</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-[1fr_260px] gap-6">
+        {/* Chat */}
+        <ChatWindow />
+
+        {/* Right panel */}
+        <div className="space-y-4">
+          <Card>
+            <CardContent className="pt-4">
+              <p className="text-xs font-semibold text-secondary uppercase tracking-wider mb-3">Quick Actions</p>
+              <div className="space-y-2">
+                {QUICK_ACTIONS.map(({ icon: Icon, label, color }) => (
+                  <button
+                    key={label}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-surface2 transition-colors text-left"
+                  >
+                    <div
+                      className="w-7 h-7 rounded-md flex items-center justify-center"
+                      style={{ backgroundColor: `${color}20` }}
+                    >
+                      <Icon className="w-3.5 h-3.5" style={{ color }} />
+                    </div>
+                    <span className="text-sm text-primary">{label}</span>
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-4">
+              <p className="text-xs font-semibold text-secondary uppercase tracking-wider mb-3">What I can do</p>
+              <ul className="space-y-2 text-xs text-secondary">
+                <li className="flex items-start gap-2">
+                  <span className="text-success mt-0.5">✓</span>
+                  Analyze spending patterns across all accounts
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-success mt-0.5">✓</span>
+                  Parse bank SMS alerts automatically
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-success mt-0.5">✓</span>
+                  Generate weekly financial reviews
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-success mt-0.5">✓</span>
+                  Flag unusual transactions
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-success mt-0.5">✓</span>
+                  Track goals and budget adherence
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-success mt-0.5">✓</span>
+                  Suggest savings opportunities
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
+}
