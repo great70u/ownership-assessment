@@ -1,6 +1,6 @@
 'use client'
 import { useFilterStore } from '@/store/filterStore'
-import { getDemoAccounts } from '@/lib/demo-store'
+import { useAccounts } from '@/lib/demo-store'
 import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 export function AccountFilter() {
   const { selectedAccountId, setAccount } = useFilterStore()
   const [open, setOpen] = useState(false)
-  const accounts = getDemoAccounts()
+  const accounts = useAccounts()
 
   const selectedAccount = accounts.find(a => a.id === selectedAccountId)
   const label = selectedAccountId === 'all' ? 'All Accounts' : selectedAccount?.bankName ?? 'All Accounts'

@@ -1,6 +1,6 @@
 'use client'
 import { useFilterStore } from '@/store/filterStore'
-import { getDemoBudgets } from '@/lib/demo-store'
+import { useBudgets } from '@/lib/demo-store'
 import { CATEGORY_COLORS, CATEGORY_LABELS, CATEGORY_EMOJIS } from '@/types'
 import { formatCurrency, percentOf } from '@/lib/utils'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -10,7 +10,7 @@ import type { TransactionCategory } from '@/types'
 
 export function BudgetSummaryGrid() {
   const { selectedAccountId } = useFilterStore()
-  const budgets = getDemoBudgets(selectedAccountId)
+  const budgets = useBudgets(selectedAccountId)
   const overBudget = budgets.filter(b => b.spent > b.amount)
 
   return (

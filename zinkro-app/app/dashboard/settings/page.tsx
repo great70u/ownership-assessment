@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { DEMO_ACCOUNTS, DEMO_USER } from '@/lib/demo-store'
+import { useAccounts, useUser } from '@/lib/demo-store'
 import { formatCurrency } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -10,9 +10,13 @@ import {
 } from 'lucide-react'
 
 export default function SettingsPage() {
+  const user = useUser()
+  const accounts = useAccounts()
   const [darkMode, setDarkMode] = useState(true)
   const [faceId, setFaceId] = useState(true)
   const [copied, setCopied] = useState(false)
+
+  const referralCode = user?.referralCode ?? ''
 
   useEffect(() => {
     const savedDark = localStorage.getItem('zinkro-dark-mode')
@@ -34,7 +38,7 @@ export default function SettingsPage() {
   }
 
   async function copyReferralCode() {
-    await navigator.clipboard.writeText(DEMO_USER.referralCode)
+    await navigator.clipboard.writeText(referralCode)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -74,15 +78,15 @@ export default function SettingsPage() {
                   AT
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-primary">{DEMO_USER.name}</h3>
-                  <p className="text-sm text-secondary">{DEMO_USER.email}</p>
+                  <h3 className="text-lg font-semibold text-primary">{user?.name}</h3>
+                  <p className="text-sm text-secondary">{user?.email}</p>
                   <Badge variant="success" className="mt-1">Health Score: 78</Badge>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { label: 'Full Name', value: DEMO_USER.name },
-                  { label: 'Email', value: DEMO_USER.email },
+                  { label: 'Full Name', value: user?.name ?? '' },
+                  { label: 'Email', value: user?.email ?? '' },
                   { label: 'Member Since', value: 'January 2026' },
                   { label: 'Plan', value: 'Free' },
                 ].map(({ label, value }) => (
@@ -99,7 +103,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader><CardTitle>Connected Accounts</CardTitle></CardHeader>
             <CardContent className="space-y-2.5">
-              {DEMO_ACCOUNTS.map(acc => (
+              {accounts.map(acc => (
                 <div key={acc.id} className="flex items-center gap-3 bg-surface2 rounded-md p-3">
                   <div className="w-8 h-8 rounded-md flex items-center justify-center text-xs font-bold text-white shrink-0"
                     style={{ backgroundColor: acc.color }}>
@@ -164,7 +168,7 @@ export default function SettingsPage() {
               <p className="text-sm text-secondary mb-3">Share Zinkro and earn ₦500 for every friend who signs up.</p>
               <div className="flex gap-2">
                 <div className="flex-1 bg-surface2 rounded-md px-4 py-2.5 font-mono text-sm text-accent font-semibold">
-                  {DEMO_USER.referralCode}
+                  {referralCode}
                 </div>
                 <button
                   onClick={copyReferralCode}

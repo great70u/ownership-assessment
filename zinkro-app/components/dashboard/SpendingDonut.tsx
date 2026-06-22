@@ -1,7 +1,7 @@
 'use client'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { useFilterStore } from '@/store/filterStore'
-import { getDemoSpendingBreakdown } from '@/lib/demo-store'
+import { useSpendingBreakdown } from '@/lib/demo-store'
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/types'
 import { formatCurrency } from '@/lib/utils'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -19,7 +19,7 @@ function CustomTooltip({ active, payload }: any) {
 
 export function SpendingDonut() {
   const { selectedAccountId } = useFilterStore()
-  const data = getDemoSpendingBreakdown(selectedAccountId)
+  const data = useSpendingBreakdown(selectedAccountId)
 
   const total = data.reduce((sum, d) => sum + d.amount, 0)
 

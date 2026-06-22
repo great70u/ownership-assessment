@@ -1,6 +1,6 @@
 'use client'
 import { useFilterStore } from '@/store/filterStore'
-import { getDemoTransactions } from '@/lib/demo-store'
+import { useTransactions } from '@/lib/demo-store'
 import { CATEGORY_COLORS, CATEGORY_LABELS, CATEGORY_EMOJIS } from '@/types'
 import { formatCurrency, formatDate, getDateGroupLabel } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -12,7 +12,7 @@ export function TransactionTable() {
   const { selectedAccountId, selectedCategory, selectedType, searchQuery } = useFilterStore()
   const [selected, setSelected] = useState<Transaction | null>(null)
 
-  let txns = getDemoTransactions(
+  let txns = useTransactions(
     selectedAccountId,
     selectedCategory !== 'ALL' ? selectedCategory : undefined,
     selectedType !== 'ALL' ? selectedType : undefined,

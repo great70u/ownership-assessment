@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { getDemoBudgets, getDemoGoals, getDemoSavingsRules } from '@/lib/demo-store'
+import { useBudgets, useGoals, useSavingsRules } from '@/lib/demo-store'
 import { BudgetCard } from '@/components/budgets/BudgetCard'
 import { GoalRing } from '@/components/goals/GoalRing'
 import { SpendingDonut } from '@/components/dashboard/SpendingDonut'
@@ -23,9 +23,9 @@ const RULE_ICONS: Record<SavingsRuleType, React.ElementType> = {
 export default function BudgetsPage() {
   const [tab, setTab] = useState<Tab>('Budgets')
   const { selectedAccountId } = useFilterStore()
-  const budgets = getDemoBudgets(selectedAccountId)
-  const goals = getDemoGoals()
-  const rules = getDemoSavingsRules()
+  const budgets = useBudgets(selectedAccountId)
+  const goals = useGoals()
+  const rules = useSavingsRules()
 
   const overBudget = budgets.filter(b => b.spent > b.amount)
 

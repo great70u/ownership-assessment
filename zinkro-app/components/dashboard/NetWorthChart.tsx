@@ -1,6 +1,6 @@
 'use client'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { getDemoNetWorth } from '@/lib/demo-store'
+import { useNetWorth } from '@/lib/demo-store'
 import { formatCurrency } from '@/lib/utils'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
@@ -15,7 +15,7 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 export function NetWorthChart() {
-  const data = getDemoNetWorth()
+  const data = useNetWorth()
 
   return (
     <Card>

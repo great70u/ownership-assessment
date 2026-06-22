@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { getDemoGoals } from '@/lib/demo-store'
+import { useGoals } from '@/lib/demo-store'
 import { formatCurrency, percentOf } from '@/lib/utils'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { ArrowRight } from 'lucide-react'
@@ -8,7 +8,7 @@ import { ArrowRight } from 'lucide-react'
 const GOAL_COLORS = ['#3D7FFF', '#00D4D4', '#9B7EDE']
 
 export function GoalProgress() {
-  const goals = getDemoGoals()
+  const goals = useGoals()
 
   return (
     <Card>

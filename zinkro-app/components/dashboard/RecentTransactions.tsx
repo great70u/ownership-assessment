@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useFilterStore } from '@/store/filterStore'
-import { getDemoTransactions } from '@/lib/demo-store'
+import { useTransactions } from '@/lib/demo-store'
 import { CATEGORY_COLORS, CATEGORY_LABELS, CATEGORY_EMOJIS } from '@/types'
 import { formatCurrency, formatRelativeDate } from '@/lib/utils'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -11,7 +11,7 @@ import type { TransactionCategory } from '@/types'
 
 export function RecentTransactions() {
   const { selectedAccountId } = useFilterStore()
-  const transactions = getDemoTransactions(selectedAccountId).slice(0, 5)
+  const transactions = useTransactions(selectedAccountId).slice(0, 5)
 
   return (
     <Card>

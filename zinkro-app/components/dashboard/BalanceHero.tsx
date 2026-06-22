@@ -1,14 +1,14 @@
 'use client'
 import { useFilterStore } from '@/store/filterStore'
-import { getDemoStats, getDemoAccounts } from '@/lib/demo-store'
+import { useStats, useAccounts } from '@/lib/demo-store'
 import { formatCurrency } from '@/lib/utils'
 import { AccountFilter } from '@/components/shared/AccountFilter'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 
 export function BalanceHero() {
   const { selectedAccountId } = useFilterStore()
-  const stats = getDemoStats(selectedAccountId)
-  const accounts = getDemoAccounts()
+  const stats = useStats(selectedAccountId)
+  const accounts = useAccounts()
 
   return (
     <div className="gradient-bg rounded-xl p-6 text-white relative overflow-hidden">

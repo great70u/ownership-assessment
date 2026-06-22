@@ -69,6 +69,7 @@ export interface SavingsRule {
   id: string
   userId: string
   type: SavingsRuleType
+  name: string
   amount: number
   frequency: string
   goalId?: string

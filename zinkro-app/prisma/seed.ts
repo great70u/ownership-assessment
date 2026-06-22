@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
 import {
   DEMO_USER,
   DEMO_ACCOUNTS,
@@ -8,7 +9,10 @@ import {
   DEMO_SAVINGS_RULES,
 } from '../lib/seed-data'
 
-const prisma = new PrismaClient()
+const adapter = new PrismaPg({
+  connectionString: process.env.DIRECT_URL || process.env.DATABASE_URL,
+})
+const prisma = new PrismaClient({ adapter })
 
 async function main() {
   console.log('Seeding Tomi Bello demo data...')
