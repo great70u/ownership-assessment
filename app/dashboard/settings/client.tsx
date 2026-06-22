@@ -8,7 +8,7 @@ import {
   User, Link2, CreditCard, Share2, Shield,
   CheckCircle2, Crown, Moon, Copy, Check,
   Eye, EyeOff, Loader2, Smartphone, LogOut,
-  Trash2, ChevronRight,
+  Trash2, MessageSquare, Mail, Zap, AlertCircle,
 } from 'lucide-react'
 
 interface SessionUser {
@@ -20,10 +20,13 @@ interface SessionUser {
 const SECTIONS = [
   { id: 'profile', icon: User, label: 'Profile' },
   { id: 'accounts', icon: Link2, label: 'Connected Accounts' },
+  { id: 'integrations', icon: Zap, label: 'Integrations' },
   { id: 'subscription', icon: CreditCard, label: 'Subscription' },
   { id: 'refer', icon: Share2, label: 'Refer & Earn' },
   { id: 'security', icon: Shield, label: 'Security' },
 ]
+
+const VIRTUAL_NUMBER = process.env.NEXT_PUBLIC_ZINKRO_VIRTUAL_NUMBER ?? '+234 901 234 5678'
 
 export function SettingsClient({ user }: { user: SessionUser | null }) {
   const [active, setActive] = useState('profile')
@@ -37,6 +40,27 @@ export function SettingsClient({ user }: { user: SessionUser | null }) {
   const [pwLoading, setPwLoading] = useState(false)
   const [profileLoading, setProfileLoading] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [intCopied, setIntCopied] = useState(false)
+  const [bvnInput, setBvnInput] = useState('')
+  const [bvnLoading, setBvnLoading] = useState(false)
+  const [bvnVerified, setBvnVerified] = useState(false)
+  const [bvnError, setBvnError] = useState('')
+
+  async function handleBvnVerify() {
+    if (!/^\d{11}$/.test(bvnInput)) { setBvnError('Enter a valid 11-digit BVN.'); return }
+    setBvnLoading(true); setBvnError('')
+    try {
+      const res = await fetch('/api/verify/bvn', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bvn: bvnInput }) })
+      if (res.ok) setBvnVerified(true)
+      else { const d = await res.json(); setBvnError(d.error ?? 'Verification failed.') }
+    } catch { setBvnError('Service unavailable. Please try again.') }
+    finally { setBvnLoading(false) }
+  }
+
+  function copyVirtual() {
+    navigator.clipboard.writeText(VIRTUAL_NUMBER.replace(/\s/g, '')).catch(() => {})
+    setIntCopied(true); setTimeout(() => setIntCopied(false), 2000)
+  }
 
   const displayName = user?.name || 'Demo User'
   const displayEmail = user?.email || 'demo@zinkro.app'
@@ -226,6 +250,120 @@ export function SettingsClient({ user }: { user: SessionUser | null }) {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* ── Integrations ── */}
+          {active === 'integrations' && (
+            <div className="space-y-5">
+              {/* SMS */}
+              <Card>
+                <CardHeader><CardTitle className="flex items-center gap-2"><MessageSquare className="w-4 h-4 text-cyan-400" />SMS Auto-Record</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-secondary">Forward your bank SMS alerts to Zinkro and every transaction is recorded automatically — no typing required.</p>
+                  <div className="bg-surface2 rounded-md p-4">
+                    <p className="text-xs font-medium text-secondary mb-1">Your Zinkro SMS number</p>
+                    <div className="flex items-center justify-between gap-3 mt-1">
+                      <span className="font-mono text-lg font-bold text-primary tracking-wide">{VIRTUAL_NUMBER}</span>
+                      <button
+                        onClick={copyVirtual}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-accent/15 border border-accent/30 text-accent text-xs hover:bg-accent/25 transition"
+                      >
+                        {intCopied ? <><Check className="w-3.5 h-3.5" />Copied!</> : <><Copy className="w-3.5 h-3.5" />Copy</>}
+                      </button>
+                    </div>
+                  </div>
+                  <ol className="space-y-2">
+                    {[
+                      'Save the Zinkro number to your contacts',
+                      'Receive any debit or credit alert from your bank',
+                      'Long-press the SMS → tap "Forward" → select Zinkro',
+                      'Your transaction appears in the dashboard instantly',
+                    ].map((s, i) => (
+                      <li key={i} className="flex items-start gap-2.5 text-sm text-secondary">
+                        <span className="w-5 h-5 rounded-full bg-surface2 border border-border flex items-center justify-center text-[10px] text-secondary shrink-0 mt-0.5">{i + 1}</span>
+                        {s}
+                      </li>
+                    ))}
+                  </ol>
+                </CardContent>
+              </Card>
+
+              {/* Email */}
+              <Card>
+                <CardHeader><CardTitle className="flex items-center gap-2"><Mail className="w-4 h-4 text-blue-400" />Email Alerts</CardTitle></CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-sm text-secondary">Connect your Gmail or Outlook to automatically import bank notification emails.</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => window.location.href = '/api/email/auth?provider=gmail'}
+                      className="flex items-center gap-2.5 px-4 py-3 rounded-md bg-surface2 border border-border hover:border-accent/50 hover:bg-surface text-sm text-primary transition"
+                    >
+                      <span className="text-lg">G</span>
+                      <div className="text-left">
+                        <p className="text-sm font-medium">Connect Gmail</p>
+                        <p className="text-xs text-secondary">Google OAuth</p>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => window.location.href = '/api/email/auth?provider=outlook'}
+                      className="flex items-center gap-2.5 px-4 py-3 rounded-md bg-surface2 border border-border hover:border-accent/50 hover:bg-surface text-sm text-primary transition"
+                    >
+                      <span className="text-lg">⬡</span>
+                      <div className="text-left">
+                        <p className="text-sm font-medium">Connect Outlook</p>
+                        <p className="text-xs text-secondary">Microsoft OAuth</p>
+                      </div>
+                    </button>
+                  </div>
+                  <div className="flex items-start gap-2 p-3 rounded-md bg-surface2 border border-border">
+                    <AlertCircle className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
+                    <p className="text-xs text-secondary leading-relaxed">We only read emails from your bank — never personal messages. Read-only access, revocable at any time.</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* BVN/NIN */}
+              <Card>
+                <CardHeader><CardTitle className="flex items-center gap-2"><Shield className="w-4 h-4 text-blue-400" />Identity Verification</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-secondary">Verify your BVN or NIN to unlock advanced features and account linking.</p>
+                  {bvnVerified ? (
+                    <div className="flex items-center gap-3 p-3 rounded-md bg-success/10 border border-success/25">
+                      <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
+                      <div>
+                        <p className="text-sm font-semibold text-success">BVN Verified</p>
+                        <p className="text-xs text-secondary mt-0.5">Your identity is confirmed. Full features unlocked.</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-secondary mb-1.5 uppercase tracking-wide">BVN (11 digits)</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            maxLength={11}
+                            value={bvnInput}
+                            onChange={e => setBvnInput(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                            placeholder="00000000000"
+                            className="flex-1 px-3 py-2.5 rounded-md bg-surface2 border border-border text-primary text-center font-mono tracking-widest text-sm focus:outline-none focus:border-accent/50 transition"
+                          />
+                          <button
+                            onClick={handleBvnVerify}
+                            disabled={bvnLoading || bvnInput.length !== 11}
+                            className="px-4 py-2.5 gradient-bg text-white text-sm font-medium rounded-md hover:opacity-90 disabled:opacity-40 transition flex items-center gap-2"
+                          >
+                            {bvnLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify'}
+                          </button>
+                        </div>
+                        {bvnError && <p className="mt-1.5 text-xs text-error flex items-center gap-1.5"><AlertCircle className="w-3.5 h-3.5" />{bvnError}</p>}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {/* ── Subscription ── */}
