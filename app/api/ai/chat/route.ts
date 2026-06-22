@@ -21,7 +21,9 @@ Format numbers with ₦ symbol. Reference their actual data when relevant.`
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages } = await req.json()
+    const { messages } = await req.json() as {
+      messages: { role: string; content: string }[]
+    }
 
     if (!process.env.ANTHROPIC_API_KEY) {
       return new Response(
@@ -30,12 +32,25 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // The Anthropic API requires the first message to use the 'user' role.
+    // The client prepends a UI-only greeting (role 'assistant'), so drop
+    // everything before the first real user message.
+    const firstUserIdx = messages.findIndex((m) => m.role === 'user')
+    const apiMessages = firstUserIdx === -1 ? [] : messages.slice(firstUserIdx)
+
+    if (apiMessages.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'No user message to respond to.' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      )
+    }
+
     const stream = await client.messages.stream({
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
       system: SYSTEM_PROMPT,
-      messages: messages.map((m: { role: string; content: string }) => ({
-        role: m.role,
+      messages: apiMessages.map((m) => ({
+        role: m.role as 'user' | 'assistant',
         content: m.content,
       })),
     })
@@ -43,15 +58,20 @@ export async function POST(req: NextRequest) {
     const encoder = new TextEncoder()
     const readable = new ReadableStream({
       async start(controller) {
-        for await (const chunk of stream) {
-          if (
-            chunk.type === 'content_block_delta' &&
-            chunk.delta.type === 'text_delta'
-          ) {
-            controller.enqueue(encoder.encode(chunk.delta.text))
+        try {
+          for await (const chunk of stream) {
+            if (
+              chunk.type === 'content_block_delta' &&
+              chunk.delta.type === 'text_delta'
+            ) {
+              controller.enqueue(encoder.encode(chunk.delta.text))
+            }
           }
+          controller.close()
+        } catch (err) {
+          console.error('AI chat stream error:', err)
+          controller.error(err)
         }
-        controller.close()
       },
     })
 
