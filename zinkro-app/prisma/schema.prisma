@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TransactionType {
+  DEBIT
+  CREDIT
+}
+
+enum TransactionCategory {
+  FEEDING
+  TRANSPORT
+  UTILITIES
+  GIFTS
+  RENT
+  OTHER
+  INCOME
+}
+
+enum BudgetPeriod {
+  MONTHLY
+  WEEKLY
+}
+
+enum SavingsRuleType {
+  ROUND_UP
+  AUTO_SAVE
+  SWEEP
+}
+
+enum AiMessageRole {
+  USER
+  ASSISTANT
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String
+  avatarUrl    String?
+  healthScore  Int           @default(0)
+  referralCode String        @unique @default(cuid())
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  accounts     Account[]
+  transactions Transaction[]
+  budgets      Budget[]
+  goals        Goal[]
+  savingsRules SavingsRule[]
+  aiMessages   AiMessage[]
+
+  @@map("users")
+}
+
+model Account {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bankName      String
+  accountNumber String
+  accountType   String        @default("Savings")
+  balance       Float         @default(0)
+  currency      String        @default("NGN")
+  color         String        @default("#3D7FFF")
+  lastSynced    DateTime      @default(now())
+  isPrimary     Boolean       @default(false)
+  transactions  Transaction[]
+
+  @@map("accounts")
+}
+
+model Transaction {
+  id                String              @id @default(cuid())
+  userId            String
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId         String
+  account           Account             @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  name              String
+  meta              String              @default("")
+  amount            Float
+  type              TransactionType
+  category          TransactionCategory @default(OTHER)
+  date              DateTime
+  isRecurring       Boolean             @default(false)
+  isAutoCategorized Boolean             @default(false)
+  rawSmsText        String?
+  note              String?
+  createdAt         DateTime            @default(now())
+
+  @@index([userId, date(sort: Desc)])
+  @@index([accountId])
+  @@map("transactions")
+}
+
+model Budget {
+  id       String              @id @default(cuid())
+  userId   String
+  user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category TransactionCategory
+  amount   Float
+  period   BudgetPeriod        @default(MONTHLY)
+  month    Int
+  year     Int
+
+  @@unique([userId, category, month, year])
+  @@map("budgets")
+}
+
+model Goal {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  emoji           String        @default("🎯")
+  targetAmount    Float
+  currentAmount   Float         @default(0)
+  targetDate      DateTime
+  isAutoSave      Boolean       @default(false)
+  autoSaveAmount  Float         @default(0)
+  savingsRules    SavingsRule[]
+  createdAt       DateTime      @default(now())
+
+  @@map("goals")
+}
+
+model SavingsRule {
+  id        String          @id @default(cuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      SavingsRuleType
+  name      String
+  amount    Float           @default(0)
+  frequency String          @default("monthly")
+  goalId    String?
+  goal      Goal?           @relation(fields: [goalId], references: [id])
+  isActive  Boolean         @default(true)
+
+  @@map("savings_rules")
+}
+
+model AiMessage {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      AiMessageRole
+  content   String        @db.Text
+  createdAt DateTime      @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("ai_messages")
+}

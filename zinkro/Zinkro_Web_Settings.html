@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zinkro — Settings (Web)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-canvas:#0F1115;
+    --bg-surface:#181B22;
+    --bg-surface-2:#20242E;
+    --border:#2A2E37;
+    --text-primary:#F5F6FA;
+    --text-secondary:#8A8F98;
+    --accent:#3D7FFF;
+    --accent-2:#00D4D4;
+    --success:#34D399;
+    --error:#FF6B6B;
+    --warning:#FFB84D;
+    --gradient: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:28px;
+
+    --cat-feeding:#FFB84D;
+    --cat-transport:#00D4D4;
+    --cat-utilities:#3D7FFF;
+    --cat-gifts:#FF6B6B;
+    --cat-rent:#9B7EDE;
+    --cat-other:#8A8F98;
+    --cat-income:#34D399;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  body{
+    font-family:'Inter', sans-serif;
+    background:#E7E9EE;
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:32px 16px; color:var(--text-primary);
+  }
+  h1,h2,h3,.font-display{ font-family:'Sora', sans-serif; }
+
+  .stage{ display:flex; flex-direction:column; align-items:center; gap:18px; width:100%; }
+  .stage-header{ text-align:center; }
+  .stage-header .eyebrow{ font-size:11px; font-weight:700; letter-spacing:3px; color:#9098A6; text-transform:uppercase; }
+  .stage-header h1{ font-size:20px; font-weight:700; color:#0F1115; margin-top:4px; }
+  .stage-hint{ font-size:12px; color:#6B7078; margin-top:2px; }
+
+  /* ---------- Browser frame ---------- */
+  .browser{
+    width:100%; max-width:1440px; height:900px;
+    background:var(--bg-canvas);
+    border-radius:16px; overflow:hidden;
+    box-shadow:0 30px 60px -20px rgba(15,17,21,0.45), 0 0 0 1px rgba(255,255,255,0.04);
+    display:flex; flex-direction:column;
+    position:relative;
+  }
+  .browser-bar{ display:flex; align-items:center; gap:14px; padding:12px 16px; background:#05060A; flex-shrink:0; }
+  .traffic{ display:flex; gap:7px; }
+  .traffic span{ width:11px; height:11px; border-radius:50%; }
+  .traffic span:nth-child(1){ background:#FF6B6B; }
+  .traffic span:nth-child(2){ background:#FFB84D; }
+  .traffic span:nth-child(3){ background:#34D399; }
+  .url-bar{ flex:1; max-width:480px; background:var(--bg-surface); border:1px solid var(--border); border-radius:8px; padding:6px 14px; font-size:12px; color:var(--text-secondary); display:flex; align-items:center; gap:8px; }
+  .url-bar svg{ width:12px; height:12px; color:var(--success); }
+
+  /* ---------- App shell ---------- */
+  .shell{ flex:1; display:flex; overflow:hidden; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{ width:236px; background:var(--bg-surface); border-right:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; padding:20px 14px; }
+  .side-logo{ display:flex; align-items:center; gap:10px; padding:0 8px 24px; }
+  .side-logo-mark{ width:34px; height:34px; border-radius:10px; background:var(--gradient); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .side-logo-mark svg{ width:18px; height:18px; color:#06141F; }
+  .side-logo-text{ font-family:'Sora',sans-serif; font-weight:800; font-size:17px; letter-spacing:0.5px; }
+
+  .nav-section-label{ font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-secondary); padding:14px 12px 8px; }
+  .nav-item{ display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; font-size:13.5px; font-weight:600; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; margin-bottom:2px; }
+  .nav-item svg{ width:18px; height:18px; flex-shrink:0; }
+  .nav-item:hover{ background:var(--bg-surface-2); color:var(--text-primary); }
+  .nav-item.active{ background:rgba(61,127,255,0.12); color:var(--text-primary); }
+  .nav-item.active svg{ color:var(--accent); }
+  .nav-spacer{ flex:1; }
+  .side-footer{ border-top:1px solid var(--border); padding-top:14px; display:flex; align-items:center; gap:10px; }
+  .side-avatar{ width:36px; height:36px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-weight:700; font-size:13px; color:#06141F; flex-shrink:0; }
+  .side-footer-name{ font-size:13px; font-weight:700; }
+  .side-footer-plan{ font-size:11px; color:var(--text-secondary); }
+  .side-footer svg{ width:14px; height:14px; color:var(--text-secondary); margin-left:auto; }
+
+  /* ---------- Main ---------- */
+  .main{ flex:1; overflow-y:auto; padding:24px 28px; min-width:0; }
+  .topbar{ display:flex; align-items:center; gap:16px; margin-bottom:24px; }
+  .topbar-title h1{ font-size:22px; font-weight:700; }
+  .topbar-title .sub{ font-size:12.5px; color:var(--text-secondary); margin-top:2px; }
+  .topbar-spacer{ flex:1; }
+  .search-input{ width:240px; background:var(--bg-surface); border:1.5px solid var(--border); border-radius:var(--r-md); padding:10px 14px; padding-left:38px; color:var(--text-primary); font-family:'Inter',sans-serif; font-size:13px; outline:none; position:relative; }
+  .search-wrap{ position:relative; }
+  .search-wrap svg{ position:absolute; left:13px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--text-secondary); }
+  .icon-btn{ width:38px; height:38px; border-radius:50%; background:var(--bg-surface); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; cursor:pointer; }
+  .icon-btn svg{ width:16px; height:16px; color:var(--text-secondary); }
+  .icon-btn .dot{ position:absolute; top:8px; right:8px; width:7px; height:7px; border-radius:50%; background:var(--error); border:2px solid var(--bg-canvas); }
+  .btn-add{ display:flex; align-items:center; gap:8px; background:var(--gradient); color:#06141F; font-weight:700; font-size:13px; padding:10px 18px; border-radius:var(--r-md); border:none; cursor:pointer; white-space:nowrap; }
+  .btn-add svg{ width:16px; height:16px; }
+  .topbar-avatar{ width:38px; height:38px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-weight:700; font-size:13px; color:#06141F; flex-shrink:0; }
+
+  /* ---------- Cards & grid ---------- */
+  .card{ background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:18px; }
+  .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
+  .stat-label{ font-size:12px; color:var(--text-secondary); margin-bottom:8px; }
+  .stat-value{ font-size:24px; font-weight:700; font-variant-numeric:tabular-nums; margin-bottom:8px; }
+  .trend-pill{ display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; }
+  .trend-up{ background:rgba(52,211,153,0.12); color:var(--success); }
+
+  .ring-wrap{ position:relative; width:48px; height:48px; flex-shrink:0; }
+  .ring-wrap svg{ transform:rotate(-90deg); }
+  .ring-center{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .ring-score{ font-size:14px; font-weight:800; font-family:'Sora',sans-serif; }
+
+  .chart-row{ display:grid; grid-template-columns:1.6fr 1fr; gap:16px; margin-bottom:20px; }
+  .card-title{ font-size:14px; font-weight:700; font-family:'Sora',sans-serif; margin-bottom:4px; }
+  .card-sub{ font-size:12px; color:var(--text-secondary); margin-bottom:14px; }
+
+  /* Net worth chart */
+  .nw-chart-wrap{ position:relative; }
+  .nw-axis{ display:flex; justify-content:space-between; font-size:11px; color:var(--text-secondary); margin-top:8px; }
+
+  /* Donut */
+  .donut-card{ display:flex; flex-direction:column; align-items:center; }
+  .donut{
+    width:140px; height:140px; border-radius:50%;
+    background: conic-gradient(#FFB84D 0deg 103.7deg, #00D4D4 103.7deg 137.3deg, #3D7FFF 137.3deg 197.1deg, #9B7EDE 197.1deg 360deg);
+    display:flex; align-items:center; justify-content:center; margin:6px 0 16px;
+  }
+  .donut-hole{ width:92px; height:92px; border-radius:50%; background:var(--bg-surface); display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .donut-hole .pct{ font-size:22px; font-weight:800; font-family:'Sora',sans-serif; }
+  .donut-hole .lbl{ font-size:10px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px; }
+  .legend{ width:100%; display:flex; flex-direction:column; gap:8px; }
+  .legend-row{ display:flex; justify-content:space-between; align-items:center; font-size:12.5px; }
+  .legend-left{ display:flex; align-items:center; gap:8px; color:var(--text-secondary); }
+  .legend-dot{ width:9px; height:9px; border-radius:3px; flex-shrink:0; }
+  .legend-val{ font-weight:700; font-variant-numeric:tabular-nums; }
+
+  /* Budget summary */
+  .budget-section{ margin-bottom:20px; }
+  .budget-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+  .budget-card .budget-top{ display:flex; justify-content:space-between; align-items:center; font-size:13px; margin-bottom:8px; }
+  .budget-cat{ display:flex; align-items:center; gap:8px; font-weight:700; }
+  .cat-dot{ width:10px; height:10px; border-radius:4px; flex-shrink:0; }
+  .budget-track{ height:7px; background:var(--bg-surface-2); border-radius:4px; overflow:hidden; margin-bottom:6px; }
+  .budget-fill{ height:100%; border-radius:4px; }
+  .budget-foot{ font-size:11px; color:var(--text-secondary); }
+  .over-tag{ font-size:10px; font-weight:700; color:var(--error); text-transform:uppercase; letter-spacing:.5px; background:rgba(255,107,107,0.12); padding:2px 7px; border-radius:6px; }
+  .alert-banner{ display:flex; gap:12px; align-items:flex-start; background:rgba(255,107,107,0.08); border:1px solid rgba(255,107,107,0.3); border-left:3px solid var(--error); border-radius:var(--r-md); padding:14px; margin-bottom:14px; font-size:13px; line-height:1.5; }
+  .alert-banner svg{ width:18px; height:18px; color:var(--error); flex-shrink:0; }
+  .alert-banner strong{ color:var(--error); }
+
+  /* Transactions table */
+  .table-wrap{ overflow-x:auto; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  thead th{ text-align:left; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-secondary); padding:0 12px 10px; border-bottom:1px solid var(--border); }
+  tbody td{ padding:14px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:nth-child(even){ background:rgba(255,255,255,0.015); }
+  tbody tr:hover{ background:rgba(61,127,255,0.04); }
+  .tx-merchant{ display:flex; align-items:center; gap:10px; font-weight:600; }
+  .tx-icon{ width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .tx-icon svg{ width:15px; height:15px; }
+  .cat-tag{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--text-secondary); }
+  .amount-cell{ font-weight:700; font-variant-numeric:tabular-nums; text-align:right; }
+  .amount-cell.income{ color:var(--success); }
+  th:last-child, td.amount-cell{ text-align:right; }
+
+  /* ---------- Right panel ---------- */
+  .right-panel{ width:312px; border-left:1px solid var(--border); padding:24px 20px; flex-shrink:0; overflow-y:auto; }
+  .panel-section{ margin-bottom:24px; }
+  .panel-title{ font-size:13px; font-weight:700; font-family:'Sora',sans-serif; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; }
+  .panel-link{ font-size:11.5px; font-weight:600; color:var(--accent-2); cursor:pointer; }
+
+  .ai-card{ display:flex; gap:10px; margin-bottom:10px; }
+  .ai-avatar{ width:30px; height:30px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .ai-avatar svg{ width:15px; height:15px; color:#06141F; }
+  .ai-text{ font-size:12.5px; line-height:1.6; }
+  .chip-row{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .chip{ font-size:11px; font-weight:600; padding:5px 10px; border-radius:999px; cursor:pointer; }
+  .chip-primary{ background:rgba(61,127,255,0.12); color:var(--accent); }
+  .chip-ghost{ background:var(--bg-surface-2); color:var(--text-secondary); }
+
+  .goal-row{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .goal-info{ flex:1; }
+  .goal-name{ font-size:12.5px; font-weight:700; }
+  .goal-sub{ font-size:11px; color:var(--text-secondary); margin-top:2px; }
+
+  .bill-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+  .bill-row:last-child{ border-bottom:none; }
+  .bill-name{ font-size:12.5px; font-weight:600; }
+  .bill-due{ font-size:10.5px; color:var(--text-secondary); margin-top:2px; }
+  .bill-due.soon{ color:var(--warning); }
+  .bill-amount{ font-size:12.5px; font-weight:700; font-variant-numeric:tabular-nums; }
+
+  /* ---------- Modal ---------- */
+  .overlay{ position:absolute; inset:0; background:rgba(0,0,0,0.55); opacity:0; pointer-events:none; transition:opacity .25s ease; z-index:60; display:flex; align-items:center; justify-content:center; }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .modal{ width:480px; max-height:85%; overflow-y:auto; background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--r-xl); padding:24px; transform:scale(.96); opacity:0; transition:all .2s ease; }
+  .overlay.show .modal{ transform:scale(1); opacity:1; }
+  .modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+  .modal-head h2{ font-size:18px; }
+  .modal-close{ width:32px; height:32px; border-radius:50%; background:var(--bg-surface-2); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .modal-close svg{ width:16px; height:16px; color:var(--text-secondary); }
+  .field-label{ font-size:13px; color:var(--text-secondary); margin-bottom:6px; display:block; font-weight:500; }
+  .field{ width:100%; background:var(--bg-surface-2); border:1.5px solid var(--border); border-radius:var(--r-md); padding:12px 14px; color:var(--text-primary); font-family:'Inter',sans-serif; font-size:14px; margin-bottom:14px; outline:none; }
+  .field-row{ display:flex; gap:12px; }
+  .field-row .field{ flex:1; }
+  .cat-picker{ display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; margin-bottom:14px; }
+  .cat-pick{ flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:6px; width:64px; padding:10px 6px; border-radius:14px; border:1.5px solid var(--border); cursor:pointer; transition:all .15s ease; }
+  .cat-pick.active{ border-color:var(--accent); background:rgba(61,127,255,0.08); }
+  .cat-pick-icon{ width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; }
+  .cat-pick-icon svg{ width:14px; height:14px; }
+  .cat-pick-label{ font-size:10px; font-weight:600; color:var(--text-secondary); text-align:center; }
+  .cat-pick.active .cat-pick-label{ color:var(--text-primary); }
+  .btn{ width:100%; border:none; border-radius:var(--r-md); font-family:'Inter',sans-serif; font-weight:600; font-size:15px; padding:13px; cursor:pointer; text-align:center; }
+  .btn-primary{ background:var(--gradient); color:#06141F; }
+
+  /* ---------- Filter bar ---------- */
+  .filter-bar{ display:flex; align-items:center; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+  .seg-control{ display:flex; background:var(--bg-surface); border-radius:var(--r-md); padding:4px; border:1px solid var(--border); }
+  .seg{ padding:8px 16px; border-radius:10px; font-size:12.5px; font-weight:600; color:var(--text-secondary); cursor:pointer; }
+  .seg.active{ background:var(--gradient); color:#06141F; }
+  .filter-chip{
+    display:flex; align-items:center; gap:6px; padding:8px 14px; border-radius:999px; font-size:12.5px; font-weight:600;
+    background:var(--bg-surface); border:1.5px solid var(--border); color:var(--text-secondary); cursor:pointer; transition:all .15s ease;
+  }
+  .filter-chip .dot{ width:8px; height:8px; border-radius:50%; }
+  .filter-chip.active{ background:rgba(61,127,255,0.12); border-color:var(--accent); color:var(--text-primary); }
+  .date-pill{ margin-left:auto; display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:600; color:var(--text-secondary); background:var(--bg-surface); border:1px solid var(--border); border-radius:999px; padding:8px 14px; cursor:pointer; }
+  .date-pill svg{ width:13px; height:13px; }
+
+  /* ---------- Table group rows ---------- */
+  .group-row td{ background:var(--bg-surface-2) !important; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-secondary); padding:10px 12px; border-bottom:1px solid var(--border); }
+  .group-row .group-total{ float:right; font-weight:700; letter-spacing:normal; text-transform:none; font-size:12px; color:var(--text-primary); }
+  .group-row .group-total.income{ color:var(--success); }
+  tbody tr.tx-clickable{ cursor:pointer; }
+  .recur-badge{ width:13px; height:13px; color:var(--text-secondary); display:inline-flex; vertical-align:middle; margin-left:6px; }
+  .recur-badge svg{ width:100%; height:100%; }
+
+  /* ---------- Toggle ---------- */
+  .toggle{ width:44px; height:26px; border-radius:13px; background:var(--bg-surface-2); border:1px solid var(--border); position:relative; cursor:pointer; transition:background .2s ease; flex-shrink:0; }
+  .toggle::after{ content:''; position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:var(--text-secondary); transition:all .2s ease; }
+  .toggle.on{ background:var(--gradient); border-color:transparent; }
+  .toggle.on::after{ left:22px; background:#fff; }
+
+  /* ---------- Detail panel ---------- */
+  .detail-head{ display:flex; flex-direction:column; align-items:center; text-align:center; padding:6px 0 16px; }
+  .detail-icon{ width:56px; height:56px; border-radius:16px; display:flex; align-items:center; justify-content:center; margin-bottom:12px; }
+  .detail-icon svg{ width:24px; height:24px; }
+  .detail-amount{ font-size:24px; font-weight:700; font-variant-numeric:tabular-nums; margin-bottom:4px; }
+  .detail-merchant{ font-size:12.5px; color:var(--text-secondary); }
+  .detail-row{ display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border); font-size:12.5px; }
+  .detail-row:last-child{ border-bottom:none; }
+  .detail-row-label{ color:var(--text-secondary); }
+  .ai-badge{ display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px; background:var(--gradient); color:#06141F; }
+  .ai-badge svg{ width:11px; height:11px; }
+  .cat-picker.small .cat-pick{ width:56px; }
+  .note-field{ width:100%; background:var(--bg-surface-2); border:1.5px solid var(--border); border-radius:var(--r-md); padding:10px 12px; color:var(--text-primary); font-family:'Inter',sans-serif; font-size:12.5px; outline:none; resize:none; margin-bottom:14px; }
+  .back-link{ display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--accent-2); cursor:pointer; margin-bottom:14px; }
+  .back-link svg{ width:14px; height:14px; }
+  .summary-stat{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); font-size:12.5px; }
+  .summary-stat:last-child{ border-bottom:none; }
+  .summary-stat .val{ font-weight:700; font-variant-numeric:tabular-nums; }
+  .summary-stat .val.income{ color:var(--success); }
+
+  /* ---------- Budgets/Goals/Savings panel additions ---------- */
+  .two-col{ display:flex; gap:16px; }
+  .goal-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .goal-card-v{ display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .goal-card-v .ring-wrap{ margin-bottom:14px; }
+  .goal-card-v .goal-name{ font-size:15px; font-weight:700; font-family:'Sora',sans-serif; margin-bottom:4px; }
+  .goal-card-v .goal-sub{ font-size:12px; color:var(--text-secondary); margin-bottom:10px; }
+  .goal-card-v .goal-amounts{ font-size:13px; margin-bottom:12px; }
+  .goal-card-v .goal-amounts strong{ font-size:17px; }
+  .goal-milestones{ display:flex; gap:5px; width:100%; }
+  .milestone{ flex:1; height:5px; border-radius:3px; background:var(--bg-surface-2); }
+  .milestone.done{ background:var(--gradient); }
+  .rule-row{ display:flex; justify-content:space-between; align-items:flex-start; padding:16px 0; border-bottom:1px solid var(--border); gap:16px; }
+  .rule-row:last-child{ border-bottom:none; }
+  .rule-title{ font-size:13.5px; font-weight:700; margin-bottom:4px; }
+  .rule-desc{ font-size:12.5px; color:var(--text-secondary); line-height:1.6; max-width:520px; }
+  .suggestion-box{ display:flex; gap:10px; align-items:flex-start; background:var(--bg-surface-2); border:1px solid var(--border); border-radius:var(--r-md); padding:12px; font-size:12.5px; line-height:1.6; color:var(--text-secondary); margin-bottom:16px; }
+  .suggestion-box svg{ width:16px; height:16px; flex-shrink:0; margin-top:1px; color:var(--accent-2); }
+
+  /* ---------- AI Assistant chat page ---------- */
+  .main.chat-page{ display:flex; flex-direction:column; padding:0; overflow:hidden; }
+  .chat-topbar{ padding:24px 28px 0; flex-shrink:0; }
+  .chat-messages{ flex:1; overflow-y:auto; padding:20px 28px; display:flex; flex-direction:column; gap:14px; max-width:760px; margin:0 auto; width:100%; }
+  .day-divider{ text-align:center; font-size:11px; font-weight:700; letter-spacing:1.5px; color:var(--text-secondary); text-transform:uppercase; margin:6px 0 4px; }
+
+  .msg-row{ display:flex; gap:12px; max-width:100%; }
+  .msg-row.user{ justify-content:flex-end; }
+  .msg-avatar{ width:32px; height:32px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .msg-avatar svg{ width:16px; height:16px; color:#06141F; }
+  .msg-bubble{ max-width:70%; padding:13px 16px; border-radius:16px; font-size:13.5px; line-height:1.65; }
+  .msg-row.ai .msg-bubble{ background:var(--bg-surface); border:1px solid var(--border); border-top-left-radius:4px; }
+  .msg-row.user .msg-bubble{ background:rgba(61,127,255,0.15); border-top-right-radius:4px; }
+  .msg-time{ font-size:10px; color:var(--text-secondary); margin-top:4px; margin-left:44px; }
+
+  .typing-bubble{ display:flex; gap:4px; align-items:center; padding:14px 16px; }
+  .typing-bubble span{ width:6px; height:6px; border-radius:50%; background:var(--text-secondary); animation:typingDot 1.2s infinite ease-in-out; }
+  .typing-bubble span:nth-child(2){ animation-delay:.2s; }
+  .typing-bubble span:nth-child(3){ animation-delay:.4s; }
+  @keyframes typingDot{ 0%,80%,100%{ opacity:.3; transform:scale(0.8);} 40%{ opacity:1; transform:scale(1.1);} }
+
+  .rich-card{ max-width:70%; background:var(--bg-surface); border:1px solid var(--border); border-radius:16px; border-top-left-radius:4px; padding:16px; font-size:13px; }
+  .rich-title{ font-size:13.5px; font-weight:700; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; }
+  .rich-title svg{ width:14px; height:14px; color:var(--text-secondary); transition:transform .2s ease; }
+  .rich-title.open svg{ transform:rotate(180deg); }
+  .rich-body{ color:var(--text-secondary); line-height:1.6; }
+  .rich-expand{ max-height:0; overflow:hidden; transition:max-height .3s ease; }
+  .rich-expand.open{ max-height:400px; margin-top:10px; }
+
+  .compare-row{ display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
+  .compare-label{ display:flex; justify-content:space-between; font-size:11px; color:var(--text-secondary); }
+  .compare-track{ height:6px; background:var(--bg-surface-2); border-radius:3px; position:relative; overflow:hidden; }
+  .compare-fill{ height:100%; border-radius:3px; position:absolute; top:0; left:0; }
+  .compare-fill.prev{ background:var(--border); opacity:.7; }
+
+  .score-row{ display:flex; align-items:center; gap:12px; margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+
+  .save-item{ display:flex; justify-content:space-between; align-items:flex-start; padding:8px 0; border-bottom:1px solid var(--border); gap:10px; }
+  .save-item:last-child{ border-bottom:none; }
+  .save-item-text{ font-size:12.5px; line-height:1.5; }
+  .save-item-amt{ font-size:12.5px; font-weight:700; color:var(--success); white-space:nowrap; }
+  .save-total{ display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:1px solid var(--border); font-weight:700; font-size:13px; }
+  .save-total .amt{ color:var(--success); }
+
+  .alert-card{ border-color:rgba(255,107,107,0.35) !important; }
+  .alert-card .rich-title{ color:var(--error); }
+  .alert-row{ display:flex; justify-content:space-between; font-size:12px; padding:4px 0; }
+  .alert-row .lbl{ color:var(--text-secondary); }
+
+  .goal-mini{ display:flex; align-items:center; gap:12px; }
+
+  .suggested-wrap{ padding:0 28px 12px; flex-shrink:0; max-width:760px; margin:0 auto; width:100%; }
+  .suggested-scroll{ display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; }
+  .suggested-scroll::-webkit-scrollbar{ display:none; }
+  .suggest-chip{
+    flex-shrink:0; font-size:12.5px; font-weight:600; padding:9px 14px; border-radius:999px;
+    background:var(--bg-surface); border:1.5px solid var(--border); color:var(--text-primary);
+    cursor:pointer; white-space:nowrap; transition:all .15s ease;
+  }
+  .suggest-chip:hover{ border-color:var(--accent); }
+
+  .chat-input-bar{ display:flex; align-items:center; gap:10px; padding:14px 28px 24px; border-top:1px solid var(--border); flex-shrink:0; max-width:760px; margin:0 auto; width:100%; }
+  .chat-input-field{
+    flex:1; background:var(--bg-surface); border:1.5px solid var(--border); border-radius:999px;
+    padding:13px 18px; color:var(--text-primary); font-family:'Inter',sans-serif; font-size:14px; outline:none;
+  }
+  .chat-input-field::placeholder{ color:#5F6772; }
+  .send-btn{
+    width:44px; height:44px; border-radius:50%; background:var(--gradient); border:none;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
+  }
+  .send-btn svg{ width:18px; height:18px; color:#06141F; }
+
+  /* ---------- History panel ---------- */
+  .history-item{ padding:10px 0; border-bottom:1px solid var(--border); cursor:pointer; }
+  .history-item:last-child{ border-bottom:none; }
+  .history-item-title{ font-size:12.5px; font-weight:700; margin-bottom:2px; }
+  .history-item-sub{ font-size:11px; color:var(--text-secondary); }
+  .history-item.active .history-item-title{ color:var(--accent-2); }
+  .quick-action{ display:flex; align-items:center; gap:10px; padding:9px 0; font-size:12.5px; font-weight:600; cursor:pointer; }
+  .quick-action svg{ width:15px; height:15px; color:var(--accent-2); flex-shrink:0; }
+
+  /* ---------- Reports page ---------- */
+  .main.reports-page{ display:block; padding:24px 28px; overflow-y:auto; }
+  .btn-outline-sm{ display:flex; align-items:center; gap:8px; background:none; border:1.5px solid var(--border); color:var(--text-primary); font-weight:600; font-size:13px; padding:10px 16px; border-radius:var(--r-md); cursor:pointer; white-space:nowrap; }
+  .btn-outline-sm svg{ width:15px; height:15px; }
+  .chart-legend{ display:flex; gap:18px; margin-top:14px; flex-wrap:wrap; font-size:12px; color:var(--text-secondary); }
+  .chart-legend .sw{ display:inline-block; width:14px; height:3px; vertical-align:middle; margin-right:6px; border-radius:2px; }
+  .change-pill{ font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:999px; }
+  .change-up{ background:rgba(255,107,107,0.12); color:var(--error); }
+  .change-down{ background:rgba(52,211,153,0.12); color:var(--success); }
+  .change-flat{ background:var(--bg-surface-2); color:var(--text-secondary); }
+  .report-row{ display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:12.5px; }
+  .report-row:last-child{ border-bottom:none; }
+  .report-row-name{ font-weight:600; }
+  .report-row-sub{ font-size:11px; color:var(--text-secondary); margin-top:2px; }
+  .report-row-link{ color:var(--accent-2); font-weight:700; cursor:pointer; }
+
+  /* ---------- Light mode override ---------- */
+  .browser.light{
+    --bg-canvas:#FFFFFF;
+    --bg-surface:#F5F6FA;
+    --bg-surface-2:#ECEEF3;
+    --border:#E2E4EA;
+    --text-primary:#0F1115;
+    --text-secondary:#6B7078;
+  }
+
+  /* ---------- Settings layout ---------- */
+  .main.settings-page{ display:flex; padding:0; overflow:hidden; }
+  .settings-nav{ width:240px; flex-shrink:0; border-right:1px solid var(--border); padding:24px 14px; overflow-y:auto; }
+  .settings-nav-item{ display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; font-size:13.5px; font-weight:600; color:var(--text-secondary); cursor:pointer; margin-bottom:2px; }
+  .settings-nav-item svg{ width:17px; height:17px; flex-shrink:0; }
+  .settings-nav-item:hover{ background:var(--bg-surface-2); color:var(--text-primary); }
+  .settings-nav-item.active{ background:rgba(61,127,255,0.12); color:var(--text-primary); }
+  .settings-nav-item.active svg{ color:var(--accent); }
+  .settings-content{ flex:1; overflow-y:auto; padding:24px 32px; max-width:640px; }
+  .settings-section{ display:none; }
+  .settings-section.active{ display:block; }
+  .settings-section h2{ font-size:18px; margin-bottom:4px; }
+  .settings-section .section-sub{ font-size:12.5px; color:var(--text-secondary); margin-bottom:20px; }
+
+  /* ---------- Profile ---------- */
+  .profile-card{ display:flex; align-items:center; gap:14px; background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--r-xl); padding:18px; margin-bottom:20px; }
+  .profile-avatar{ width:56px; height:56px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-weight:700; font-size:20px; color:#06141F; flex-shrink:0; }
+  .profile-name{ font-size:16px; font-weight:700; font-family:'Sora',sans-serif; }
+  .profile-email{ font-size:12px; color:var(--text-secondary); margin-top:2px; }
+  .profile-badge{ display:inline-flex; align-items:center; gap:5px; margin-top:8px; font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px; background:rgba(52,211,153,0.12); color:var(--success); }
+
+  /* ---------- Connected accounts ---------- */
+  .acct-row{ display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid var(--border); }
+  .acct-row:last-child{ border-bottom:none; }
+  .acct-logo{ width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-weight:800; font-size:12px; flex-shrink:0; color:#fff; }
+  .acct-name{ font-size:13.5px; font-weight:700; }
+  .acct-sub{ font-size:11.5px; color:var(--text-secondary); margin-top:2px; }
+  .acct-balance{ font-size:13.5px; font-weight:700; font-variant-numeric:tabular-nums; text-align:right; }
+  .acct-sync{ font-size:10.5px; color:var(--success); text-align:right; margin-top:2px; }
+
+  /* ---------- Plans ---------- */
+  .plan-row{ display:flex; gap:16px; }
+  .plan-card{ flex:1; border:1.5px solid var(--border); border-radius:var(--r-lg); padding:18px; }
+  .plan-card.featured{ border-color:var(--accent); background:rgba(61,127,255,0.06); }
+  .plan-name{ font-size:15px; font-weight:700; display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+  .plan-price{ font-size:24px; font-weight:800; font-family:'Sora',sans-serif; margin-bottom:12px; }
+  .plan-price span{ font-size:12px; font-weight:500; color:var(--text-secondary); }
+  .plan-feature{ font-size:12.5px; color:var(--text-secondary); padding:5px 0; display:flex; gap:8px; align-items:flex-start; }
+  .plan-feature svg{ width:14px; height:14px; color:var(--success); flex-shrink:0; margin-top:1px; }
+  .plan-tag{ font-size:10px; font-weight:700; padding:3px 8px; border-radius:999px; background:var(--gradient); color:#06141F; }
+
+  /* ---------- Referral ---------- */
+  .refer-code{ display:flex; align-items:center; justify-content:space-between; background:var(--bg-surface-2); border:1.5px dashed var(--border); border-radius:var(--r-md); padding:16px 18px; margin-bottom:18px; }
+  .refer-code-text{ font-family:'Sora',sans-serif; font-weight:800; font-size:20px; letter-spacing:3px; }
+  .copy-btn{ display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:700; color:var(--accent); cursor:pointer; }
+  .copy-btn svg{ width:14px; height:14px; }
+  .refer-stats{ display:flex; gap:14px; margin-bottom:18px; }
+  .refer-stat{ flex:1; background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--r-md); padding:14px; text-align:center; }
+  .refer-stat .num{ font-size:20px; font-weight:800; font-family:'Sora',sans-serif; }
+  .refer-stat .lbl{ font-size:11px; color:var(--text-secondary); margin-top:2px; }
+  .share-row{ display:flex; gap:10px; }
+  .share-btn{ flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:12px; border-radius:var(--r-md); background:var(--bg-surface-2); border:1px solid var(--border); font-size:12.5px; font-weight:600; color:var(--text-secondary); cursor:pointer; }
+  .share-btn svg{ width:16px; height:16px; }
+
+  /* ---------- Danger zone ---------- */
+  .danger-btn{ width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:12px; border-radius:var(--r-md); border:1.5px solid rgba(255,107,107,0.3); color:var(--error); font-weight:700; font-size:13px; cursor:pointer; background:none; }
+  .danger-btn svg{ width:15px; height:15px; }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="stage-header">
+    <div class="eyebrow">ZINKRO WEB — SETTINGS</div>
+    <h1>Desktop Settings</h1>
+    <div class="stage-hint">Click any category on the left to switch sections &middot; toggle Dark/Light Mode in Preferences to re-theme the whole frame live</div>
+  </div>
+
+  <div class="browser" id="browser">
+    <div class="browser-bar">
+      <div class="traffic"><span></span><span></span><span></span></div>
+      <div class="url-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        app.zinkro.com/dashboard
+      </div>
+    </div>
+
+    <div class="shell">
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="side-logo">
+          <div class="side-logo-mark">
+            <svg viewBox="0 0 180 180" width="18" height="18">
+              <g transform="translate(8,30)">
+                <path d="M30 0 H8 a14 14 0 0 0 -14 14 v48 a14 14 0 0 0 14 14 H30" fill="none" stroke="#06141F" stroke-width="11" stroke-linecap="round"/>
+                <path d="M74 0 H96 a14 14 0 0 1 14 14 v48 a14 14 0 0 1 -14 14 H74" fill="none" stroke="#06141F" stroke-width="11" stroke-linecap="round"/>
+                <polyline points="22,52 40,52 50,28 64,68 78,38 92,38" fill="none" stroke="#06141F" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+              </g>
+            </svg>
+          </div>
+          <div class="side-logo-text">Zinkro</div>
+        </div>
+
+        <div class="nav-section-label">Menu</div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 2l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+          Dashboard
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          Transactions
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Budgets
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
+          Goals
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Savings
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3"/><path d="M12 2a5 5 0 0 1 5 5v3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/></svg>
+          AI Assistant
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+          Reports
+        </div>
+
+        <div class="nav-spacer"></div>
+
+        <div class="nav-item active" style="margin-bottom:8px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </div>
+
+        <div class="side-footer">
+          <div class="side-avatar">AT</div>
+          <div>
+            <div class="side-footer-name">Tomi Bello</div>
+            <div class="side-footer-plan">Free Plan</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+      </div>
+
+      <!-- Main -->
+      <div class="main settings-page">
+
+        <div class="settings-nav">
+          <div class="settings-nav-item active" onclick="setSection(this,'profile')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Profile
+          </div>
+          <div class="settings-nav-item" onclick="setSection(this,'security')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Security
+          </div>
+          <div class="settings-nav-item" onclick="setSection(this,'accounts')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            Connected Accounts
+          </div>
+          <div class="settings-nav-item" onclick="setSection(this,'notifications')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Notifications
+          </div>
+          <div class="settings-nav-item" onclick="setSection(this,'preferences')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+            Preferences
+          </div>
+          <div class="settings-nav-item" onclick="setSection(this,'subscription')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            Subscription
+          </div>
+          <div class="settings-nav-item" onclick="setSection(this,'referral')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><circle cx="16" cy="14" r="1.5"/></svg>
+            Refer &amp; Earn
+          </div>
+          <div class="settings-nav-item" onclick="setSection(this,'privacy')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Privacy &amp; Data
+          </div>
+          <div class="settings-nav-item" onclick="setSection(this,'support')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Help &amp; Support
+          </div>
+        </div>
+
+        <div class="settings-content">
+
+          <!-- PROFILE -->
+          <div class="settings-section active" id="sec-profile">
+            <h2>Profile</h2>
+            <div class="section-sub">Your personal information</div>
+
+            <div class="profile-card">
+              <div class="profile-avatar">AT</div>
+              <div>
+                <div class="profile-name">Adetomiwa Bello</div>
+                <div class="profile-email">tomi@email.com &#8226; +234 801 234 5678</div>
+                <div class="profile-badge">
+                  <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3"/><path d="M12 2a5 5 0 0 1 5 5v3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/></svg>
+                  Health Score: 78 &#8226; Good
+                </div>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div style="flex:1;">
+                <label class="field-label">Full Name</label>
+                <input class="field" value="Adetomiwa Bello">
+              </div>
+              <div style="flex:1;">
+                <label class="field-label">Phone Number</label>
+                <input class="field" value="+234 801 234 5678">
+              </div>
+            </div>
+
+            <label class="field-label">Email Address</label>
+            <input class="field" value="tomi@email.com">
+
+            <label class="field-label">Home Currency</label>
+            <input class="field" value="Nigerian Naira (&#8358;)" disabled>
+
+            <button class="btn btn-primary" style="margin-top:6px;">Save Changes</button>
+          </div>
+
+          <!-- SECURITY -->
+          <div class="settings-section" id="sec-security">
+            <h2>Security</h2>
+            <div class="section-sub">Manage how you sign in and protect your account</div>
+
+            <div class="card" style="margin-bottom:16px;">
+              <div class="rule-row">
+                <div>
+                  <div class="rule-title">Face ID / Biometric Login</div>
+                  <div class="rule-desc">Use Face ID or fingerprint to unlock Zinkro on this device.</div>
+                </div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="rule-row">
+                <div>
+                  <div class="rule-title">Two-Factor Authentication</div>
+                  <div class="rule-desc">Require a one-time code sent via SMS when signing in from a new device.</div>
+                </div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="rule-row">
+                <div>
+                  <div class="rule-title">Login Alerts</div>
+                  <div class="rule-desc">Get notified by email whenever your account is accessed from a new device.</div>
+                </div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+            </div>
+
+            <label class="field-label">Change PIN</label>
+            <div class="field-row">
+              <input class="field" type="password" placeholder="Current PIN">
+              <input class="field" type="password" placeholder="New PIN">
+            </div>
+            <button class="btn btn-primary">Update PIN</button>
+          </div>
+
+          <!-- CONNECTED ACCOUNTS -->
+          <div class="settings-section" id="sec-accounts">
+            <h2>Connected Accounts</h2>
+            <div class="section-sub">Bank accounts linked via SMS &amp; email alerts</div>
+
+            <div class="card" style="margin-bottom:16px;">
+              <div class="acct-row">
+                <div class="acct-logo" style="background:#FF6600;">GT</div>
+                <div style="flex:1;">
+                  <div class="acct-name">GTBank</div>
+                  <div class="acct-sub">&#8226;&#8226;&#8226;&#8226; 4521 &#8226; Savings</div>
+                </div>
+                <div>
+                  <div class="acct-balance">&#8358;312,800</div>
+                  <div class="acct-sync">&#9679; Synced 2m ago</div>
+                </div>
+              </div>
+              <div class="acct-row">
+                <div class="acct-logo" style="background:#E4003A;">AB</div>
+                <div style="flex:1;">
+                  <div class="acct-name">Access Bank</div>
+                  <div class="acct-sub">&#8226;&#8226;&#8226;&#8226; 0192 &#8226; Current</div>
+                </div>
+                <div>
+                  <div class="acct-balance">&#8358;145,500</div>
+                  <div class="acct-sync">&#9679; Synced 5m ago</div>
+                </div>
+              </div>
+              <div class="acct-row">
+                <div class="acct-logo" style="background:#00425F;">ZE</div>
+                <div style="flex:1;">
+                  <div class="acct-name">Zenith Bank</div>
+                  <div class="acct-sub">&#8226;&#8226;&#8226;&#8226; 7788 &#8226; Savings</div>
+                </div>
+                <div>
+                  <div class="acct-balance">&#8358;24,000</div>
+                  <div class="acct-sync">&#9679; Synced 12m ago</div>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn-outline-sm" style="width:100%; justify-content:center;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              Add Another Account
+            </button>
+          </div>
+
+          <!-- NOTIFICATIONS -->
+          <div class="settings-section" id="sec-notifications">
+            <h2>Notifications</h2>
+            <div class="section-sub">Choose how and when Zinkro reaches you</div>
+
+            <div class="card" style="margin-bottom:16px;">
+              <div class="rule-row">
+                <div><div class="rule-title">Push Notifications</div><div class="rule-desc">Real-time alerts on your phone and desktop.</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="rule-row">
+                <div><div class="rule-title">Email</div><div class="rule-desc">Weekly summaries and important account emails.</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="rule-row">
+                <div><div class="rule-title">SMS</div><div class="rule-desc">Critical security alerts only.</div></div>
+                <div class="toggle" onclick="this.classList.toggle('on')"></div>
+              </div>
+            </div>
+
+            <div class="card-title" style="margin-bottom:14px;">Notification Types</div>
+            <div class="card">
+              <div class="rule-row">
+                <div><div class="rule-title">Budget Alerts</div><div class="rule-desc">When you're approaching or over a budget.</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="rule-row">
+                <div><div class="rule-title">Weekly &amp; Monthly Reviews</div><div class="rule-desc">AI-generated summaries of your spending.</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="rule-row">
+                <div><div class="rule-title">Bill Reminders</div><div class="rule-desc">Upcoming subscriptions and recurring payments.</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="rule-row">
+                <div><div class="rule-title">Goal Milestones</div><div class="rule-desc">When you hit a savings goal milestone.</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PREFERENCES -->
+          <div class="settings-section" id="sec-preferences">
+            <h2>Preferences</h2>
+            <div class="section-sub">Display, currency &amp; language settings</div>
+
+            <div class="card" style="margin-bottom:16px;">
+              <div class="rule-row" onclick="toggleTheme()" style="cursor:pointer;">
+                <div>
+                  <div class="rule-title">Dark Mode</div>
+                  <div class="rule-desc" id="themeSub">Currently on &#8226; matches Zinkro's default look</div>
+                </div>
+                <div class="toggle on" id="themeToggle" onclick="event.stopPropagation(); toggleTheme()"></div>
+              </div>
+              <div class="rule-row">
+                <div><div class="rule-title">Currency</div><div class="rule-desc">Primary currency for tracking and reports.</div></div>
+                <div style="font-size:13px; font-weight:600;">NGN (&#8358;)</div>
+              </div>
+              <div class="rule-row">
+                <div><div class="rule-title">Language</div><div class="rule-desc">App display language.</div></div>
+                <div style="font-size:13px; font-weight:600;">English</div>
+              </div>
+              <div class="rule-row">
+                <div><div class="rule-title">Date Format</div><div class="rule-desc">How dates are displayed across Zinkro.</div></div>
+                <div style="font-size:13px; font-weight:600;">DD/MM/YYYY</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUBSCRIPTION -->
+          <div class="settings-section" id="sec-subscription">
+            <h2>Subscription</h2>
+            <div class="section-sub">Manage your Zinkro plan</div>
+
+            <div class="plan-row">
+              <div class="plan-card">
+                <div class="plan-name">Free <span style="font-size:11px; color:var(--success); font-weight:700;">Current Plan</span></div>
+                <div class="plan-price">&#8358;0<span> /month</span></div>
+                <div class="plan-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Automatic transaction tracking</div>
+                <div class="plan-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Budgets &amp; goals</div>
+                <div class="plan-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>3 AI questions per day</div>
+              </div>
+              <div class="plan-card featured">
+                <div class="plan-name">Premium <span class="plan-tag">RECOMMENDED</span></div>
+                <div class="plan-price">&#8358;1,500<span> /month</span></div>
+                <div class="plan-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Everything in Free</div>
+                <div class="plan-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Unlimited AI Assistant &amp; weekly reviews</div>
+                <div class="plan-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Spending forecasts &amp; predictions</div>
+                <div class="plan-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Unlimited connected accounts</div>
+                <div class="plan-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>PDF report export</div>
+                <button class="btn btn-primary" style="margin-top:12px;">Upgrade to Premium</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- REFER & EARN -->
+          <div class="settings-section" id="sec-referral">
+            <h2>Refer &amp; Earn</h2>
+            <div class="section-sub">Share your code with friends. When they sign up and connect their bank alerts, you both get &#8358;2,000.</div>
+
+            <div class="refer-code">
+              <div class="refer-code-text">TOMI2026</div>
+              <div class="copy-btn" onclick="copyCode(this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <span>Copy</span>
+              </div>
+            </div>
+
+            <div class="refer-stats">
+              <div class="refer-stat"><div class="num">3</div><div class="lbl">Friends Joined</div></div>
+              <div class="refer-stat"><div class="num">&#8358;6,000</div><div class="lbl">Earned</div></div>
+              <div class="refer-stat"><div class="num">1</div><div class="lbl">Pending</div></div>
+            </div>
+
+            <div class="share-row">
+              <div class="share-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                WhatsApp
+              </div>
+              <div class="share-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="m22 6-10 7L2 6"/></svg>
+                Email
+              </div>
+              <div class="share-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                More
+              </div>
+            </div>
+          </div>
+
+          <!-- PRIVACY & DATA -->
+          <div class="settings-section" id="sec-privacy">
+            <h2>Privacy &amp; Data</h2>
+            <div class="section-sub">Control what Zinkro can access and how your data is used</div>
+
+            <div class="card" style="margin-bottom:16px;">
+              <div class="rule-row">
+                <div><div class="rule-title">SMS Alert Access</div><div class="rule-desc">Required to automatically detect and categorize transactions.</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="rule-row">
+                <div><div class="rule-title">Email Alert Access</div><div class="rule-desc">Reads bank emails for transactions not sent via SMS.</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="rule-row">
+                <div><div class="rule-title">Usage Analytics</div><div class="rule-desc">Help us improve Zinkro by sharing anonymized usage data.</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="rule-row">
+                <div><div class="rule-title">Personalized AI Insights</div><div class="rule-desc">Allow Zinkro AI to use your transaction history for tailored advice.</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+            </div>
+
+            <button class="btn-outline-sm" style="width:100%; justify-content:center; margin-bottom:10px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export My Data
+            </button>
+          </div>
+
+          <!-- HELP & SUPPORT -->
+          <div class="settings-section" id="sec-support">
+            <h2>Help &amp; Support</h2>
+            <div class="section-sub">Get help, contact us, or review our policies</div>
+
+            <div class="card">
+              <div class="rule-row" style="cursor:pointer;">
+                <div><div class="rule-title">Help Center</div><div class="rule-desc">Browse FAQs and guides.</div></div>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px; height:16px; color:var(--text-secondary);"><path d="m9 18 6-6-6-6"/></svg>
+              </div>
+              <div class="rule-row" style="cursor:pointer;">
+                <div><div class="rule-title">Contact Support</div><div class="rule-desc">Chat with our team, Monday&#8211;Friday 8am&#8211;6pm WAT.</div></div>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px; height:16px; color:var(--text-secondary);"><path d="m9 18 6-6-6-6"/></svg>
+              </div>
+              <div class="rule-row" style="cursor:pointer;">
+                <div><div class="rule-title">Terms &amp; Privacy Policy</div><div class="rule-desc">Review our terms of service and privacy practices.</div></div>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px; height:16px; color:var(--text-secondary);"><path d="m9 18 6-6-6-6"/></svg>
+              </div>
+              <div class="rule-row" style="cursor:pointer;">
+                <div><div class="rule-title">About Zinkro</div><div class="rule-desc">Version 1.0.0 &#8226; Track it all, automatically.</div></div>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px; height:16px; color:var(--text-secondary);"><path d="m9 18 6-6-6-6"/></svg>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Right panel -->
+      <div class="right-panel">
+
+        <div class="panel-section">
+          <div class="panel-title">Account Overview</div>
+          <div class="profile-card" style="margin-bottom:0;">
+            <div class="profile-avatar">AT</div>
+            <div>
+              <div class="profile-name">Tomi Bello</div>
+              <div class="profile-email">tomi@email.com</div>
+              <div class="profile-badge">Free Plan</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <div class="summary-stat"><span class="detail-row-label">Financial Health</span><span class="val">78 &#8226; Good</span></div>
+          <div class="summary-stat"><span class="detail-row-label">Member Since</span><span class="val">Jan 2026</span></div>
+          <div class="summary-stat"><span class="detail-row-label">Connected Accounts</span><span class="val">3</span></div>
+          <div class="summary-stat"><span class="detail-row-label">Referral Earnings</span><span class="val income">&#8358;6,000</span></div>
+        </div>
+
+        <div class="panel-section">
+          <div class="ai-card">
+            <div class="ai-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3"/><path d="M12 2a5 5 0 0 1 5 5v3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/></svg></div>
+            <div>
+              <div class="ai-text">Upgrading to Premium gives Zinkro AI more context to spot savings &#8212; most Premium users save an extra &#8358;15,000&#8211;25,000/month.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-title">Account</div>
+          <button class="danger-btn" style="border-color:var(--border); color:var(--text-primary); margin-bottom:10px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Log Out
+          </button>
+          <button class="danger-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            Delete Account
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function setSection(el, id){
+    document.querySelectorAll('.settings-nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('sec-'+id).classList.add('active');
+    document.querySelector('.settings-content').scrollTop = 0;
+  }
+
+  function toggleTheme(){
+    const browser = document.getElementById('browser');
+    const toggle = document.getElementById('themeToggle');
+    const sub = document.getElementById('themeSub');
+    const isLight = browser.classList.toggle('light');
+    toggle.classList.toggle('on', !isLight);
+    sub.textContent = isLight
+      ? "Currently off \u2014 using light surfaces"
+      : "Currently on \u2014 matches Zinkro's default look";
+  }
+
+  function copyCode(el){
+    const span = el.querySelector('span');
+    span.textContent = 'Copied!';
+    setTimeout(() => span.textContent = 'Copy', 1500);
+  }
+</script>
+</body>
+</html>
