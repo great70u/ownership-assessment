@@ -1,13 +1,18 @@
 'use client'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react'
 import { Bot, User, Send, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useChatStore } from '@/store/chatStore'
 
 interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
+}
+
+export interface ChatWindowHandle {
+  submitMessage: (text: string) => void
 }
 
 const INITIAL_MESSAGES: Message[] = [
@@ -23,16 +28,39 @@ const PROMPT_CHIPS = [
   'Am I on track for my goals?',
   'Where can I cut back?',
   'Give me a weekly review',
-  'What\'s my savings rate?',
+  "What's my savings rate?",
 ]
 
-export function ChatWindow() {
+export const ChatWindow = forwardRef<ChatWindowHandle>(function ChatWindow(_, ref) {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES)
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const [apiKeyMissing, setApiKeyMissing] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const initializedRef = useRef(false)
+
+  const loadHistory = useChatStore(s => s.loadHistory)
+  const historyLoaded = useChatStore(s => s.historyLoaded)
+  const history = useChatStore(s => s.history)
+  const saveMessages = useChatStore(s => s.saveMessages)
+  const appendToHistory = useChatStore(s => s.appendToHistory)
+
+  useEffect(() => {
+    loadHistory()
+  }, [loadHistory])
+
+  useEffect(() => {
+    if (!historyLoaded || initializedRef.current) return
+    initializedRef.current = true
+    if (history.length > 0) {
+      setMessages(history.map(h => ({ id: h.id, role: h.role, content: h.content })))
+    }
+  }, [historyLoaded, history])
+
+  useImperativeHandle(ref, () => ({
+    submitMessage: (text: string) => sendMessage(text),
+  }))
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -48,6 +76,8 @@ export function ChatWindow() {
     setMessages(prev => [...prev, userMsg, assistantMsg])
     setInput('')
     setStreaming(true)
+
+    let finalContent = ''
 
     try {
       const res = await fetch('/api/ai/chat', {
@@ -78,17 +108,26 @@ export function ChatWindow() {
       if (!reader) throw new Error('No response body')
 
       const decoder = new TextDecoder()
-      let accumulated = ''
 
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
-        accumulated += decoder.decode(value, { stream: true })
-        const snapshot = accumulated
+        finalContent += decoder.decode(value, { stream: true })
+        const snapshot = finalContent
         setMessages(prev =>
           prev.map(m => (m.id === assistantId ? { ...m, content: snapshot } : m))
         )
       }
+
+      const now = new Date().toISOString()
+      appendToHistory([
+        { id: userMsg.id, role: 'user', content: userMsg.content, createdAt: now },
+        { id: assistantId, role: 'assistant', content: finalContent, createdAt: now },
+      ])
+      saveMessages([
+        { role: 'user', content: userMsg.content },
+        { role: 'assistant', content: finalContent },
+      ])
     } catch (err) {
       console.error(err)
       setMessages(prev =>
@@ -103,6 +142,8 @@ export function ChatWindow() {
       inputRef.current?.focus()
     }
   }
+
+  const showChips = messages.length <= 1 && !apiKeyMissing
 
   return (
     <div className="flex flex-col h-[calc(100vh-120px)]">
@@ -146,7 +187,7 @@ export function ChatWindow() {
       </div>
 
       {/* Prompt chips */}
-      {messages.length <= 1 && (
+      {showChips && (
         <div className="flex gap-2 flex-wrap mb-3">
           {PROMPT_CHIPS.map(chip => (
             <button
@@ -184,4 +225,4 @@ export function ChatWindow() {
       </div>
     </div>
   )
-}
+})
