@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 're
 import { Bot, User, Send, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useChatStore } from '@/store/chatStore'
 
 interface Message {
   id: string
@@ -14,29 +15,48 @@ export interface ChatWindowHandle {
   submitMessage: (text: string) => void
 }
 
-const INITIAL_MESSAGES: Message[] = [
-  {
-    id: 'init',
-    role: 'assistant',
-    content: "Hi Tomi! 👋 I'm your Zinkro AI assistant. I can see your finances across all 3 accounts. Ask me anything — like \"How did I spend last week?\" or \"Am I on track for my goals?\"",
-  },
-]
+const GREETING: Message = {
+  id: 'init',
+  role: 'assistant',
+  content: "Hi Tomi! 👋 I'm your Zinkro AI assistant. I can see your finances across all 3 accounts. Ask me anything — like \"How did I spend last week?\" or \"Am I on track for my goals?\"",
+}
 
 const PROMPT_CHIPS = [
   'How did I spend this month?',
   'Am I on track for my goals?',
   'Where can I cut back?',
   'Give me a weekly review',
-  'What\'s my savings rate?',
+  "What's my savings rate?",
 ]
 
 export const ChatWindow = forwardRef<ChatWindowHandle>(function ChatWindow(_, ref) {
-  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES)
+  const [messages, setMessages] = useState<Message[]>([GREETING])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const [apiKeyMissing, setApiKeyMissing] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const initializedRef = useRef(false)
+
+  const loadHistory = useChatStore(s => s.loadHistory)
+  const historyLoaded = useChatStore(s => s.historyLoaded)
+  const history = useChatStore(s => s.history)
+  const saveMessages = useChatStore(s => s.saveMessages)
+  const appendToHistory = useChatStore(s => s.appendToHistory)
+
+  // Load history once on mount
+  useEffect(() => {
+    loadHistory()
+  }, [loadHistory])
+
+  // Restore messages from history after load
+  useEffect(() => {
+    if (!historyLoaded || initializedRef.current) return
+    initializedRef.current = true
+    if (history.length > 0) {
+      setMessages(history.map(h => ({ id: h.id, role: h.role, content: h.content })))
+    }
+  }, [historyLoaded, history])
 
   useImperativeHandle(ref, () => ({
     submitMessage: (text: string) => sendMessage(text),
@@ -57,6 +77,8 @@ export const ChatWindow = forwardRef<ChatWindowHandle>(function ChatWindow(_, re
     setInput('')
     setStreaming(true)
 
+    let finalContent = ''
+
     try {
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
@@ -70,12 +92,9 @@ export const ChatWindow = forwardRef<ChatWindowHandle>(function ChatWindow(_, re
         const err = await res.json()
         if (err.error?.includes('ANTHROPIC_API_KEY')) {
           setApiKeyMissing(true)
+          const msg = '⚠️ AI assistant requires an ANTHROPIC_API_KEY to be configured in environment variables. The rest of the app works without it!'
           setMessages(prev =>
-            prev.map(m =>
-              m.id === assistantId
-                ? { ...m, content: '⚠️ AI assistant requires an ANTHROPIC_API_KEY to be configured in environment variables. The rest of the app works without it!' }
-                : m
-            )
+            prev.map(m => m.id === assistantId ? { ...m, content: msg } : m)
           )
           return
         }
@@ -86,17 +105,28 @@ export const ChatWindow = forwardRef<ChatWindowHandle>(function ChatWindow(_, re
       if (!reader) throw new Error('No response body')
 
       const decoder = new TextDecoder()
-      let accumulated = ''
 
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
-        accumulated += decoder.decode(value, { stream: true })
-        const snapshot = accumulated
+        finalContent += decoder.decode(value, { stream: true })
+        const snapshot = finalContent
         setMessages(prev =>
           prev.map(m => (m.id === assistantId ? { ...m, content: snapshot } : m))
         )
       }
+
+      // Persist both messages after stream completes
+      const now = new Date().toISOString()
+      const saved = [
+        { id: userMsg.id, role: 'user' as const, content: userMsg.content, createdAt: now },
+        { id: assistantId, role: 'assistant' as const, content: finalContent, createdAt: now },
+      ]
+      appendToHistory(saved)
+      saveMessages([
+        { role: 'user', content: userMsg.content },
+        { role: 'assistant', content: finalContent },
+      ])
     } catch (err) {
       console.error(err)
       setMessages(prev =>
@@ -111,6 +141,8 @@ export const ChatWindow = forwardRef<ChatWindowHandle>(function ChatWindow(_, re
       inputRef.current?.focus()
     }
   }
+
+  const showChips = messages.length <= 1 && !apiKeyMissing
 
   return (
     <div className="flex flex-col h-[calc(100vh-120px)]">
@@ -154,7 +186,7 @@ export const ChatWindow = forwardRef<ChatWindowHandle>(function ChatWindow(_, re
       </div>
 
       {/* Prompt chips */}
-      {messages.length <= 1 && (
+      {showChips && (
         <div className="flex gap-2 flex-wrap mb-3">
           {PROMPT_CHIPS.map(chip => (
             <button

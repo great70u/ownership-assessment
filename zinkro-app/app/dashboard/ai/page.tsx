@@ -1,6 +1,7 @@
 'use client'
 import { useRef } from 'react'
 import { ChatWindow, ChatWindowHandle } from '@/components/ai/ChatWindow'
+import { ChatHistorySearch } from '@/components/ai/ChatHistorySearch'
 import { Bot, TrendingUp, AlertCircle, BarChart3 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -54,37 +55,7 @@ export default function AiPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs font-semibold text-secondary uppercase tracking-wider mb-3">What I can do</p>
-              <ul className="space-y-2 text-xs text-secondary">
-                <li className="flex items-start gap-2">
-                  <span className="text-success mt-0.5">✓</span>
-                  Analyze spending patterns across all accounts
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-success mt-0.5">✓</span>
-                  Parse bank SMS alerts automatically
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-success mt-0.5">✓</span>
-                  Generate weekly financial reviews
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-success mt-0.5">✓</span>
-                  Flag unusual transactions
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-success mt-0.5">✓</span>
-                  Track goals and budget adherence
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-success mt-0.5">✓</span>
-                  Suggest savings opportunities
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
+          <ChatHistorySearch />
         </div>
       </div>
     </div>
