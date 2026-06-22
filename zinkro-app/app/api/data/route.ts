@@ -32,7 +32,7 @@ export async function GET() {
   }
 
   try {
-    const { prisma } = await import('@/lib/prisma')
+    const { prisma } = await import('../../../lib/prisma')
 
     const [user, accounts, transactions, budgets, goals, savingsRules] =
       await Promise.all([
