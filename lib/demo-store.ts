@@ -1,6 +1,9 @@
 'use client'
-// In-memory demo store — no DB required for the demo mode
-// This lets the app work fully without Supabase credentials
+// Data accessors for the dashboard.
+// Rows are sourced from the loaded data store (DB-backed via /api/data), with
+// the in-memory seed as a fallback so the app still renders before hydration
+// or when no database is configured. Function names/signatures are unchanged,
+// so call sites stay the same — only the data source moved.
 
 import {
   DEMO_USER,
@@ -10,10 +13,26 @@ import {
   DEMO_GOALS,
   DEMO_SAVINGS_RULES,
 } from './seed-data'
+import { useDataStore } from '@/store/dataStore'
 import type { Transaction, TransactionCategory, Account, Budget, Goal } from '@/types'
 
+// Pull the current rows from the store, falling back to the seed when empty.
+// DataProvider gates the dashboard until the store is loaded, so by the time
+// these run inside a dashboard component the store already holds real data.
+function rows() {
+  const s = useDataStore.getState()
+  return {
+    user: s.user ?? DEMO_USER,
+    accounts: s.accounts.length ? s.accounts : DEMO_ACCOUNTS,
+    transactions: s.transactions.length ? s.transactions : DEMO_TRANSACTIONS,
+    budgets: s.budgets.length ? s.budgets : DEMO_BUDGETS,
+    goals: s.goals.length ? s.goals : DEMO_GOALS,
+    savingsRules: s.savingsRules.length ? s.savingsRules : DEMO_SAVINGS_RULES,
+  }
+}
+
 export function getDemoAccounts(accountId?: string): Account[] {
-  const accounts = DEMO_ACCOUNTS.map(a => ({ ...a, lastSynced: new Date().toISOString() }))
+  const accounts = rows().accounts.map(a => ({ ...a, lastSynced: new Date().toISOString() }))
   if (accountId && accountId !== 'all') {
     return accounts.filter(a => a.id === accountId)
   }
@@ -21,9 +40,10 @@ export function getDemoAccounts(accountId?: string): Account[] {
 }
 
 export function getDemoTransactions(accountId?: string, category?: TransactionCategory, type?: 'DEBIT' | 'CREDIT'): Transaction[] {
-  let txns: Transaction[] = DEMO_TRANSACTIONS.map(t => ({
+  const allAccounts = rows().accounts
+  let txns: Transaction[] = rows().transactions.map(t => ({
     ...t,
-    account: DEMO_ACCOUNTS.find(a => a.id === t.accountId),
+    account: allAccounts.find(a => a.id === t.accountId),
   })) as Transaction[]
 
   if (accountId && accountId !== 'all') {
@@ -45,7 +65,7 @@ export function getDemoBudgets(accountId?: string): (Budget & { spent: number })
     return d.getMonth() === 5 && d.getFullYear() === 2026 && t.type === 'DEBIT'
   })
 
-  return DEMO_BUDGETS.map(b => {
+  return rows().budgets.map(b => {
     const spent = june2026
       .filter(t => t.category === b.category)
       .reduce((sum, t) => sum + t.amount, 0)
@@ -53,14 +73,15 @@ export function getDemoBudgets(accountId?: string): (Budget & { spent: number })
   })
 }
 
-export function getDemoGoals(): typeof DEMO_GOALS {
-  return DEMO_GOALS
+export function getDemoGoals(): Goal[] {
+  return rows().goals
 }
 
 export function getDemoSavingsRules() {
-  return DEMO_SAVINGS_RULES.map(r => ({
+  const goals = rows().goals
+  return rows().savingsRules.map(r => ({
     ...r,
-    goal: DEMO_GOALS.find(g => g.id === r.goalId),
+    goal: goals.find(g => g.id === r.goalId),
   }))
 }
 
