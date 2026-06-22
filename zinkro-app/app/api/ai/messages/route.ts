@@ -11,7 +11,7 @@ export async function GET() {
   }
 
   try {
-    const { prisma } = await import('@/lib/prisma')
+    const { prisma } = await import('../../../../lib/prisma')
     const rows = await prisma.aiMessage.findMany({
       where: { userId: USER_ID },
       orderBy: { createdAt: 'asc' },
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
   try {
     const { messages } = await req.json() as { messages: { role: string; content: string }[] }
 
-    const { prisma } = await import('@/lib/prisma')
+    const { prisma } = await import('../../../../lib/prisma')
     await prisma.aiMessage.createMany({
       data: messages.map(m => ({
         userId: USER_ID,
