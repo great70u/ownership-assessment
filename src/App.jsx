@@ -135,109 +135,121 @@ const f = {
   page: { minHeight: '100vh', background: '#000', color: '#fff', fontFamily: "'Montserrat',Arial,sans-serif" },
 
   // Header
-  header: { borderBottom: '1px solid #1a1a1a', padding: '18px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, background: '#000', zIndex: 10 },
+  header: { borderBottom: '1px solid #262626', padding: '18px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, background: '#000', zIndex: 10 },
   logoWrap: { display: 'flex', alignItems: 'center', gap: '12px' },
   logoImg: { height: '34px', width: '34px', objectFit: 'contain' },
   logoText: { fontWeight: 800, fontSize: '16px', letterSpacing: '-0.01em', color: '#fff' },
   progWrap: { display: 'flex', alignItems: 'center', gap: '12px' },
-  progBar: { width: '140px', height: '2px', background: '#1a1a1a', borderRadius: '2px', overflow: 'hidden' },
+  progBar: { width: '140px', height: '4px', background: '#2e2e2e', borderRadius: '2px', overflow: 'hidden' },
   progFill: (pct) => ({ height: '100%', width: `${pct}%`, background: '#FDBE0F', borderRadius: '2px', transition: 'width 0.4s ease' }),
-  progLabel: { fontSize: '12px', color: '#808080', fontWeight: 500 },
+  progLabel: { fontSize: '13px', color: '#fff', fontWeight: 600 },
 
   // Intro
   introWrap: { maxWidth: '760px', margin: '0 auto', padding: '80px 24px' },
-  eyebrow: { display: 'inline-block', fontSize: '10px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#000', background: '#FDBE0F', padding: '6px 16px', marginBottom: '32px' },
+  eyebrow: { display: 'inline-block', fontSize: '11px', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#000', background: '#FDBE0F', padding: '7px 16px', marginBottom: '32px' },
   h1: { fontSize: 'clamp(32px, 5vw, 54px)', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', color: '#fff', marginBottom: '22px' },
   h1y: { color: '#FDBE0F' },
-  sub: { fontSize: '16px', lineHeight: 1.7, color: '#808080', maxWidth: '520px', marginBottom: '48px' },
-  startBtn: { display: 'inline-flex', alignItems: 'center', gap: '10px', background: '#FDBE0F', color: '#000', fontFamily: "'Montserrat',Arial,sans-serif", fontWeight: 800, fontSize: '13px', letterSpacing: '0.05em', textTransform: 'uppercase', padding: '18px 36px', border: 'none', cursor: 'pointer' },
-  metaRow: { display: 'flex', gap: '48px', marginTop: '64px', paddingTop: '40px', borderTop: '1px solid #1a1a1a' },
+  sub: { fontSize: '17px', lineHeight: 1.7, color: '#e0e0e0', maxWidth: '540px', marginBottom: '48px', fontWeight: 400 },
+  startBtn: (hov) => ({ display: 'inline-flex', alignItems: 'center', gap: '10px', background: hov ? '#fff' : '#FDBE0F', color: '#000', fontFamily: "'Montserrat',Arial,sans-serif", fontWeight: 800, fontSize: '14px', letterSpacing: '0.05em', textTransform: 'uppercase', padding: '19px 38px', border: 'none', borderRadius: '8px', cursor: 'pointer', transition: 'all .2s cubic-bezier(.22,1,.36,1)', transform: hov ? 'translateY(-2px)' : 'none', boxShadow: hov ? '0 10px 26px rgba(253,190,15,0.32)' : 'none' }),
+  metaRow: { display: 'flex', gap: '48px', marginTop: '64px', paddingTop: '40px', borderTop: '1px solid #262626' },
   metaNum: { fontWeight: 900, fontSize: '38px', color: '#FDBE0F', display: 'block', lineHeight: 1 },
-  metaLbl: { fontSize: '10px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#808080', marginTop: '6px', display: 'block' },
+  metaLbl: { fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#fff', marginTop: '8px', display: 'block' },
 
   // Question
-  qWrap: { maxWidth: '700px', margin: '0 auto', padding: '60px 24px 80px' },
-  qMeta: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' },
-  qNum: { fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#808080' },
-  qTopic: { fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#FDBE0F', background: 'rgba(253,190,15,0.08)', padding: '4px 12px' },
-  qPrompt: { fontSize: 'clamp(19px, 2.9vw, 26px)', fontWeight: 700, lineHeight: 1.35, letterSpacing: '-0.02em', color: '#fff', marginBottom: '14px' },
-  qContext: { fontSize: '14px', lineHeight: 1.6, color: '#666', fontWeight: 400, paddingLeft: '14px', borderLeft: '2px solid #FDBE0F', marginBottom: '40px' },
-  qInstruction: { fontSize: '10px', color: '#555', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', textAlign: 'center', marginBottom: '14px' },
-
-  // Two-pole display
-  poleRow: { display: 'flex', justifyContent: 'space-between', gap: '16px', marginBottom: '16px' },
-  poleBox: (side) => ({
-    flex: 1,
-    padding: '16px',
-    background: '#0d0d0d',
-    border: '1px solid #1a1a1a',
-    fontSize: '13px',
-    lineHeight: 1.5,
-    color: side === 'left' ? '#808080' : 'rgba(253,190,15,0.7)',
-    fontWeight: 500,
-    textAlign: side === 'left' ? 'left' : 'right',
-  }),
-  poleLabel: (side) => ({
-    fontSize: '9px',
-    fontWeight: 700,
-    letterSpacing: '0.1em',
-    textTransform: 'uppercase',
-    color: side === 'left' ? '#333' : '#FDBE0F',
-    marginBottom: '6px',
-    display: 'block',
-  }),
+  qWrap: { maxWidth: '700px', margin: '0 auto', padding: '56px 24px 80px' },
+  qMeta: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
+  qNum: { fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fff' },
+  qTopic: { fontSize: '11px', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#000', background: '#FDBE0F', padding: '5px 13px' },
+  qPrompt: { fontSize: 'clamp(20px, 2.9vw, 27px)', fontWeight: 700, lineHeight: 1.35, letterSpacing: '-0.02em', color: '#fff', marginBottom: '16px' },
+  qContext: { fontSize: '15px', lineHeight: 1.6, color: '#fff', fontWeight: 400, paddingLeft: '16px', borderLeft: '3px solid #FDBE0F', marginBottom: '44px' },
+  qInstruction: { fontSize: '12px', color: '#fff', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', textAlign: 'center', marginBottom: '18px' },
 
   // Options
-  optGrid: { display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '8px', marginBottom: '48px' },
-  optBtn: (sel) => ({
-    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
-    padding: '20px 6px 16px',
-    background: sel ? '#FDBE0F' : '#0d0d0d',
-    border: sel ? '2px solid #FDBE0F' : '1px solid #1a1a1a',
-    cursor: 'pointer', transition: 'all 0.15s ease',
+  optGrid: { display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '10px', marginBottom: '48px' },
+  optBtn: (sel, hov) => ({
+    position: 'relative',
+    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px',
+    padding: '22px 8px 18px',
+    background: sel ? '#FDBE0F' : (hov ? '#1f1f1f' : '#121212'),
+    border: sel ? '2px solid #FDBE0F' : (hov ? '2px solid #FDBE0F' : '2px solid #333'),
+    borderRadius: '10px',
+    cursor: 'pointer',
+    transition: 'background .2s ease, border-color .2s ease, transform .2s cubic-bezier(.22,1,.36,1), box-shadow .2s ease',
+    transform: sel ? 'translateY(-4px)' : (hov ? 'translateY(-4px)' : 'none'),
+    boxShadow: sel ? '0 10px 26px rgba(253,190,15,0.30)' : (hov ? '0 8px 22px rgba(253,190,15,0.14)' : 'none'),
   }),
-  optVal: (sel) => ({ fontWeight: 900, fontSize: '20px', color: sel ? '#000' : '#2a2a2a', fontFamily: "'Montserrat',Arial,sans-serif" }),
-  optLbl: (sel) => ({ fontSize: '10px', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: sel ? '#000' : '#808080', textAlign: 'center' }),
-  optSub: (sel) => ({ fontSize: '9px', fontWeight: 500, color: sel ? '#333' : '#444', letterSpacing: '0.02em' }),
+  // Signal-strength meter: n filled segments out of 4
+  meterRow: { display: 'flex', alignItems: 'flex-end', gap: '3px', height: '26px' },
+  meterSeg: (filled, sel, hov, i) => ({
+    width: '5px',
+    height: `${9 + i * 5}px`,
+    borderRadius: '2px',
+    background: filled
+      ? (sel ? '#3d2d02' : '#FDBE0F')
+      : (sel ? 'rgba(61,45,2,0.25)' : (hov ? '#3a3a3a' : '#2b2b2b')),
+    transition: 'background .2s ease',
+  }),
+  optLbl: (sel) => ({ fontSize: '11.5px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: sel ? '#000' : '#fff', textAlign: 'center', lineHeight: 1.2 }),
+  optSub: (sel) => ({ fontSize: '10px', fontWeight: 600, color: sel ? '#6b4f06' : '#8f8f8f', letterSpacing: '0.04em' }),
 
-  navRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  backBtn: { background: 'transparent', color: '#808080', fontFamily: "'Montserrat',Arial,sans-serif", fontWeight: 600, fontSize: '12px', border: 'none', cursor: 'pointer', letterSpacing: '0.04em' },
-  nextBtn: (dis) => ({
-    display: 'inline-flex', alignItems: 'center', gap: '8px',
-    background: dis ? '#111' : '#FDBE0F',
-    color: dis ? '#333' : '#000',
-    fontFamily: "'Montserrat',Arial,sans-serif", fontWeight: 800, fontSize: '12px',
+  navRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px' },
+  backBtn: (hov) => ({
+    display: 'inline-flex', alignItems: 'center', gap: '9px',
+    background: '#fff', color: '#000',
+    fontWeight: 800, fontSize: '13px',
     letterSpacing: '0.06em', textTransform: 'uppercase',
-    padding: '15px 30px', border: 'none',
-    cursor: dis ? 'not-allowed' : 'pointer', transition: 'all 0.15s ease',
+    padding: '16px 30px',
+    border: '2px solid #fff',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'all .2s cubic-bezier(.22,1,.36,1)',
+    transform: hov ? 'translateY(-2px)' : 'none',
+    boxShadow: hov ? '0 8px 22px rgba(255,255,255,0.22)' : 'none',
   }),
+  nextBtn: (dis, hov) => ({
+    display: 'inline-flex', alignItems: 'center', gap: '10px',
+    background: '#FDBE0F',
+    color: '#000',
+    fontWeight: 800, fontSize: '13px',
+    letterSpacing: '0.06em', textTransform: 'uppercase',
+    padding: '16px 36px',
+    border: '2px solid #FDBE0F',
+    borderRadius: '8px',
+    opacity: 1,
+    cursor: dis ? 'not-allowed' : 'pointer',
+    transition: 'all .2s cubic-bezier(.22,1,.36,1)',
+    transform: (hov && !dis) ? 'translateY(-2px)' : 'none',
+    boxShadow: (hov && !dis) ? '0 10px 26px rgba(253,190,15,0.32)' : 'none',
+  }),
+  navHint: { fontSize: '12px', color: '#FDBE0F', fontWeight: 700, letterSpacing: '0.05em', textAlign: 'center', marginTop: '20px' },
 
   // Result
   rWrap: { maxWidth: '720px', margin: '0 auto', padding: '60px 24px 100px' },
   scoreCenter: { textAlign: 'center', marginBottom: '56px' },
-  scoreBox: { display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '150px', height: '150px', background: '#FDBE0F', marginBottom: '24px' },
-  scoreNum: { fontWeight: 900, fontSize: '52px', color: '#000', lineHeight: 1, fontFamily: "'Montserrat',Arial,sans-serif" },
-  scoreOf: { fontSize: '11px', fontWeight: 700, color: '#000', letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: '2px' },
-  rTag: (bg, tc) => ({ display: 'inline-block', background: bg, color: tc, fontSize: '10px', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '6px 16px', marginBottom: '14px' }),
-  rLabel: { fontWeight: 900, fontSize: 'clamp(24px, 4vw, 36px)', letterSpacing: '-0.02em', color: '#fff', marginBottom: '4px' },
-  rRange: { fontSize: '12px', color: '#808080', fontWeight: 500 },
-  card: { background: '#0d0d0d', border: '1px solid #1a1a1a', padding: '28px', marginBottom: '10px' },
-  cardEye: { fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#FDBE0F', marginBottom: '12px' },
-  cardHead: { fontWeight: 700, fontSize: 'clamp(16px, 2.5vw, 20px)', lineHeight: 1.3, color: '#fff', marginBottom: '10px', letterSpacing: '-0.01em' },
-  cardBody: { fontSize: '14px', lineHeight: 1.8, color: '#808080' },
-  bulletList: { listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px' },
-  bulletItem: { display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '14px', lineHeight: 1.65, color: '#808080' },
-  bulletMark: { width: '7px', height: '7px', background: '#FDBE0F', marginTop: '6px', flexShrink: 0 },
-  ctaCard: { background: '#0d0d0d', border: '1px solid #FDBE0F', padding: '32px', marginTop: '10px' },
-  ctaText: { fontSize: '14px', lineHeight: 1.8, color: '#808080', marginBottom: '24px' },
-  ctaBtn: { display: 'inline-flex', alignItems: 'center', gap: '10px', background: '#FDBE0F', color: '#000', fontFamily: "'Montserrat',Arial,sans-serif", fontWeight: 800, fontSize: '12px', letterSpacing: '0.06em', textTransform: 'uppercase', padding: '15px 30px', border: 'none', cursor: 'pointer', textDecoration: 'none' },
-  retake: { display: 'block', width: '100%', textAlign: 'center', marginTop: '28px', background: 'transparent', color: '#333', fontFamily: "'Montserrat',Arial,sans-serif", fontSize: '12px', fontWeight: 500, border: 'none', cursor: 'pointer' },
+  scoreBox: { display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '156px', height: '156px', background: '#FDBE0F', marginBottom: '24px' },
+  scoreNum: { fontWeight: 900, fontSize: '54px', color: '#000', lineHeight: 1, fontFamily: "'Montserrat',Arial,sans-serif" },
+  scoreOf: { fontSize: '11px', fontWeight: 800, color: '#000', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: '4px' },
+  rTag: (bg, tc) => ({ display: 'inline-block', background: bg, color: tc, fontSize: '11px', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '7px 16px', marginBottom: '14px' }),
+  rLabel: { fontWeight: 900, fontSize: 'clamp(24px, 4vw, 36px)', letterSpacing: '-0.02em', color: '#fff', marginBottom: '6px' },
+  rRange: { fontSize: '13px', color: '#fff', fontWeight: 600 },
+  card: { background: '#141414', border: '1px solid #333', padding: '30px', marginBottom: '12px' },
+  cardEye: { fontSize: '11px', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#FDBE0F', marginBottom: '14px' },
+  cardHead: { fontWeight: 700, fontSize: 'clamp(17px, 2.5vw, 21px)', lineHeight: 1.35, color: '#fff', marginBottom: '12px', letterSpacing: '-0.01em' },
+  cardBody: { fontSize: '15px', lineHeight: 1.8, color: '#e0e0e0' },
+  bulletList: { listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px' },
+  bulletItem: { display: 'flex', alignItems: 'flex-start', gap: '14px', fontSize: '15px', lineHeight: 1.65, color: '#fff' },
+  bulletMark: { width: '8px', height: '8px', background: '#FDBE0F', marginTop: '7px', flexShrink: 0 },
+  ctaCard: { background: '#141414', border: '2px solid #FDBE0F', padding: '34px', marginTop: '12px' },
+  ctaText: { fontSize: '15px', lineHeight: 1.8, color: '#fff', marginBottom: '26px' },
+  ctaBtn: (hov) => ({ display: 'inline-flex', alignItems: 'center', gap: '10px', background: hov ? '#fff' : '#FDBE0F', color: '#000', fontFamily: "'Montserrat',Arial,sans-serif", fontWeight: 800, fontSize: '13px', letterSpacing: '0.06em', textTransform: 'uppercase', padding: '17px 34px', border: 'none', borderRadius: '8px', cursor: 'pointer', textDecoration: 'none', transition: 'all .2s cubic-bezier(.22,1,.36,1)', transform: hov ? 'translateY(-2px)' : 'none', boxShadow: hov ? '0 10px 26px rgba(253,190,15,0.32)' : 'none' }),
+  retake: (hov) => ({ display: 'block', width: '100%', textAlign: 'center', marginTop: '30px', background: 'transparent', color: hov ? '#FDBE0F' : '#fff', fontFamily: "'Montserrat',Arial,sans-serif", fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer', textDecoration: 'underline', transition: 'color 0.15s ease' }),
 }
 
 export default function App() {
   const [phase, setPhase] = useState('intro')
   const [current, setCurrent] = useState(0)
   const [answers, setAnswers] = useState({})
+  const [hov, setHov] = useState(null)
 
   const totalQ = QUESTIONS.length
   const progress = phase === 'result' ? 100 : Math.round((current / totalQ) * 100)
@@ -245,9 +257,9 @@ export default function App() {
   const selected = answers[current]
 
   const handleSelect = (val) => setAnswers(prev => ({ ...prev, [current]: val }))
-  const handleNext = () => current < totalQ - 1 ? setCurrent(c => c + 1) : setPhase('result')
-  const handleBack = () => current === 0 ? setPhase('intro') : setCurrent(c => c - 1)
-  const handleRetake = () => { setPhase('intro'); setCurrent(0); setAnswers({}) }
+  const handleNext = () => { setHov(null); current < totalQ - 1 ? setCurrent(c => c + 1) : setPhase('result') }
+  const handleBack = () => { setHov(null); current === 0 ? setPhase('intro') : setCurrent(c => c - 1) }
+  const handleRetake = () => { setHov(null); setPhase('intro'); setCurrent(0); setAnswers({}) }
 
   const score = Object.values(answers).reduce((s, v) => s + v, 0)
   const result = getResult(score)
@@ -284,7 +296,12 @@ export default function App() {
           <p style={f.sub}>
             10 questions. 3 minutes. A clear picture of where ownership breaks down in your team and what to do about it.
           </p>
-          <button style={f.startBtn} onClick={() => setPhase('questions')}>
+          <button
+            style={f.startBtn(hov === 'start')}
+            onMouseEnter={() => setHov('start')}
+            onMouseLeave={() => setHov(null)}
+            onClick={() => { setHov(null); setPhase('questions') }}
+          >
             Start Assessment →
           </button>
           <div style={f.metaRow}>
@@ -306,27 +323,32 @@ export default function App() {
             <span style={f.qTopic}>{q.topic}</span>
           </div>
 
-          <div style={f.qPrompt}>{q.statement}</div>
+          <div style={f.qPrompt} className="fade-up" key={`s-${current}`}>{q.statement}</div>
 
-          <div style={f.qContext}>{q.context}</div>
+          <div style={f.qContext} className="fade-up" key={`c-${current}`}>{q.context}</div>
 
           <div style={f.qInstruction}>
             How often is this true of your team?
           </div>
 
           {/* Options */}
-          <div style={f.optGrid}>
+          <div style={f.optGrid} className="stagger" key={`opts-${current}`}>
             {OPTIONS.map(opt => {
               const sel = selected === opt.value
+              const isHov = hov === `opt${opt.value}`
               return (
                 <button
                   key={opt.value}
-                  style={f.optBtn(sel)}
+                  style={f.optBtn(sel, isHov)}
                   onClick={() => handleSelect(opt.value)}
-                  onMouseEnter={e => { if (!sel) e.currentTarget.style.borderColor = '#FDBE0F' }}
-                  onMouseLeave={e => { if (!sel) e.currentTarget.style.borderColor = '#1a1a1a' }}
+                  onMouseEnter={() => setHov(`opt${opt.value}`)}
+                  onMouseLeave={() => setHov(null)}
                 >
-                  <span style={f.optVal(sel)}>{opt.value}</span>
+                  <span style={f.meterRow}>
+                    {[0, 1, 2, 3].map(i => (
+                      <span key={i} style={f.meterSeg(i < opt.value, sel, isHov, i)} />
+                    ))}
+                  </span>
                   <span style={f.optLbl(sel)}>{opt.label}</span>
                   <span style={f.optSub(sel)}>{opt.sub}</span>
                 </button>
@@ -335,15 +357,28 @@ export default function App() {
           </div>
 
           <div style={f.navRow}>
-            <button style={f.backBtn} onClick={handleBack}>← Back</button>
             <button
-              style={f.nextBtn(selected === undefined)}
+              style={f.backBtn(hov === 'back')}
+              onMouseEnter={() => setHov('back')}
+              onMouseLeave={() => setHov(null)}
+              onClick={handleBack}
+            >
+              ← Back
+            </button>
+            <button
+              style={f.nextBtn(selected === undefined, hov === 'next')}
+              onMouseEnter={() => setHov('next')}
+              onMouseLeave={() => setHov(null)}
               onClick={handleNext}
               disabled={selected === undefined}
             >
               {current === totalQ - 1 ? 'See My Results →' : 'Next →'}
             </button>
           </div>
+
+          {selected === undefined && (
+            <div style={f.navHint}>Choose an option above to continue</div>
+          )}
         </div>
       )}
 
@@ -351,7 +386,7 @@ export default function App() {
       {phase === 'result' && (
         <div style={f.rWrap}>
           <div style={f.scoreCenter}>
-            <div style={f.scoreBox}>
+            <div style={f.scoreBox} className="pop-in">
               <span style={f.scoreNum}>{score}</span>
               <span style={f.scoreOf}>out of 40</span>
             </div>
@@ -383,7 +418,9 @@ export default function App() {
             <p style={f.ctaText}>{result.cta}</p>
             <a
               href="https://www.beingsphereint.com/corporate/own-it"
-              style={f.ctaBtn}
+              style={f.ctaBtn(hov === 'cta')}
+              onMouseEnter={() => setHov('cta')}
+              onMouseLeave={() => setHov(null)}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -391,7 +428,14 @@ export default function App() {
             </a>
           </div>
 
-          <button style={f.retake} onClick={handleRetake}>Retake assessment</button>
+          <button
+            style={f.retake(hov === 'retake')}
+            onMouseEnter={() => setHov('retake')}
+            onMouseLeave={() => setHov(null)}
+            onClick={handleRetake}
+          >
+            Retake assessment
+          </button>
         </div>
       )}
     </div>
